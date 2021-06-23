@@ -5,7 +5,7 @@ __version__ = "1.0.0"
 setup(
     name="combo-e2e",
     version=__version__,
-    description="Python end-to-end testing for AngularJS projects",
+    description="Python end-to-end testing for Angular projects",
     url="https://github.com/AdCombo/combo-e2e",
     author="AdCombo Team",
     author_email="roman@adcombo.com",

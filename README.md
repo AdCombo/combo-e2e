@@ -1,7 +1,7 @@
 combo-e2e
 ============
 
-Python end-to-end testing for AngularJS projects
+Python end-to-end testing for Angular projects
 
 Installation
 ============

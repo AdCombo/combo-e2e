@@ -14,9 +14,10 @@ class FileWaitTimeout(Exception):
 
 
 class FileWaiter:
-    def __init__(self, directory_to_watch: Union[str, Path], increase_to: int, timeout: int):
+    def __init__(self, directory_to_watch: Union[str, Path], ignored_extentions: List[str], increase_to: int, timeout: int):
         self._start_time: float = datetime.datetime.now().timestamp()
         self.directory_to_watch = directory_to_watch
+        self.ignored_extentions = ignored_extentions
         self.increase_to = increase_to
         self.timeout = timeout
         self._new_files = []
@@ -38,24 +39,18 @@ class FileWaiter:
     def _get_latest_files(self) -> List[Path]:
         new_paths = []
         for path in self.directory_to_watch.iterdir():
-            if path.is_file() and path.stat().st_ctime > self._start_time:
+            if path.is_file() and path.stat().st_ctime > self._start_time and path.suffix not in self.ignored_extentions:
                 new_paths.append(path)
         return new_paths
 
 
 @contextmanager
-def wait_new_files(page: AbstractBasePage, path: Union[str, Path] = None, increase_to: int = 1,
-                   timeout: int = 10) -> ContextManager[FileWaiter]:
-    """
-    :param page:
-    :param path:
-    :param increase_to:
-    :param timeout:
-    :return:
-    """
+def wait_new_files(page: AbstractBasePage, path: Union[str, Path] = None, ignored_extentions: List[str] = ['.crdownload'],
+                   increase_to: int = 1, timeout: int = 10) -> ContextManager[FileWaiter]:
     if path is None:
         path = page.downloads_dir
-    waiter = FileWaiter(path, increase_to, timeout)
+    waiter = FileWaiter(path, ignored_extentions, increase_to, timeout)
     yield waiter
     waiter.wait()
+    # closing all tabs that might have been opened while downloading files
     page.focus_on_first_opened_tab()

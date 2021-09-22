@@ -1,6 +1,7 @@
 from contextlib import suppress
 from typing import Optional
 
+from combo_e2e.config import config
 from combo_e2e.helpers.exceptions import NoSuchElementError, ConfirmDialogNotFound, ConfirmDialogAttributeError, \
     ConfirmDialogException
 from combo_e2e.pages import WebElementProxy
@@ -15,8 +16,8 @@ class ConfirmDialog:
     _title_class = 'p-dialog-title'
     _message_class = 'p-dialog-content'
 
-    ok_btn_relative_xpath = '//button[@ng-reflect-label="Yes"]'
-    cancel_btn_relative_xpath = '//button[@ng-reflect-label="No"]'
+    ok_btn_relative_xpath = f'//button[@{config.DATA_E2E_ATTRIBUTE}="confirmDialog_ok"]'
+    cancel_btn_relative_xpath = f'//button[@{config.DATA_E2E_ATTRIBUTE}="confirmDialog_cancel"]'
 
     component: WebElement = None
     """

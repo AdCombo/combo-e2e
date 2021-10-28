@@ -282,9 +282,16 @@ class ListOfElementDescriptor:
     and then any element can be accessed like this:
     elements.get(1)
     elements.get(2)
+    Also allows to describe elements like this:
+    <button name="row_1_foo"></button>
+    <button name="row_2_foo"></button>
+    You can use end_name_part parametr:
+    elements = ListOfElementDescriptor(base_name_parts=['row_'], end_name_part='_foo')
     """
     base_name_parts: list = None
     """list of common parts of the attribute value of group of elements"""
+    end_name_part: str = None
+    """the end part of the attribute value of group of elements"""
     tag_attr_name: str = None
     """attribute name by which elements are grouped"""
     many: bool = None
@@ -293,11 +300,12 @@ class ListOfElementDescriptor:
     # only xpath search is supported for now
     search_by: str = 'xpath'
 
-    def __init__(self, base_name_parts: List[str], many: bool = False, tag_attr_name: str = DATA_E2E_ATTRIBUTE_NAME,
-                 context=None):
+    def __init__(self, base_name_parts: List[str], end_name_part: str = None, many: bool = False,
+                 tag_attr_name: str = DATA_E2E_ATTRIBUTE_NAME, context=None):
         """
 
         :param base_name_parts: list of common parts of the attribute value of group of elements
+        :param end_name_part: the end part of the attribute value of group of elements
         :param many: flag that multiple elements will be found by full name
         :param tag_attr_name: attribute name by which elements are grouped
         :param context:
@@ -305,6 +313,7 @@ class ListOfElementDescriptor:
         if not isinstance(base_name_parts, list):
             raise BasePageException('base_name_parts must be list of string')
         self.base_name_parts = [name.strip('_') for name in base_name_parts]
+        self.end_name_part = end_name_part.strip('_') if end_name_part else end_name_part
         self.many = many
         self.tag_attr_name = tag_attr_name
         self.page = context
@@ -368,7 +377,10 @@ class ListOfElementDescriptor:
 
         indexed_names = []
         for val in zip(self.base_name_parts, params):
-            indexed_names.append('_'.join(val))
+            indexed_names.append(('_' if val[0] else '').join(val))
+
+        if self.end_name_part:
+            indexed_names.append(self.end_name_part)
 
         return '_'.join(indexed_names)
 

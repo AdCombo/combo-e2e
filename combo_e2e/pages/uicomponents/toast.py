@@ -112,3 +112,11 @@ class Toast:
         :return:
         """
         return self.type and self.type is self.Types.error
+
+    @property
+    def is_warning(self):
+        """
+        Check if notification type is warning
+        :return:
+        """
+        return self.type and self.type is self.Types.warning

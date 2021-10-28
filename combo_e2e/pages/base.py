@@ -238,3 +238,11 @@ class BasePage(AbstractBasePage):
         """
         toast = self.wait_and_get_toast()
         return toast.is_error
+
+    def is_toast_warning(self) -> bool:
+        """
+        Checks if toast of warning type appeared on the page.
+        :return:
+        """
+        toast = self.wait_and_get_toast()
+        return toast.is_warning

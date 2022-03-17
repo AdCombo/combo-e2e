@@ -44,7 +44,7 @@ class Select:
         Get list with all available options
         :return:
         """
-        return self._find_options(By.CLASS_NAME, self._option_class)
+        return self._find_options(By.XPATH, f'//*[contains(@class,"{self._option_class}")]')
 
     def _find_options(self, by: str, value: str) -> List[WebElement]:
         """

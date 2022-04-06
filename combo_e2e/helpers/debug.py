@@ -21,12 +21,12 @@ class ActionTypes(Enum):
 PARAMS = {
     ActionTypes.screenshot.value: {
         'extension': 'png',
-        'path': config.SCREENSHOT_PATH,
+        'path_attribute': 'SCREENSHOT_PATH',
         'file_prefix': 'screenshot',
     },
     ActionTypes.logs.value: {
         'extension': 'log',
-        'path': config.CONSOLE_LOG_PATH,
+        'path_attribute': 'CONSOLE_LOG_PATH',
         'file_prefix': 'log',
     }
 }
@@ -48,7 +48,7 @@ def _append_uniq_postfix(file_name: str) -> str:
 
 
 def _get_base_path(action_type: int):
-    path = Path(PARAMS[action_type]['path'])
+    path = Path(getattr(config, PARAMS[action_type]['path_attribute']))
     if not path.exists():
         path.mkdir(parents=True)
     return path

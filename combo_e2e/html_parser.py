@@ -1,28 +1,24 @@
 import logging
-
 from copy import deepcopy
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple
+from typing import Dict, List, Optional, Tuple
 
-from combo_e2e.config import config
-from combo_e2e.helpers.const import (
-    PAGE_PATH_NAME,
-    NAV_PAGE_PATH_NAME,
-    RAW_PAGE_CLASS_POSTFIX,
-    RAW_PAGE_PATH_NAME,
-)
-from combo_e2e.helpers.exceptions import ParserException
-from combo_e2e.pages import \
-    BasePage, BasePageMeta, BaseNavigation, BaseNavigationMeta, ElementDescriptor, WebElementProxy
-from combo_e2e.helpers.utils import Utils, RelativeImportPath, LineRange
 from lxml.etree import XMLSyntaxError
+from lxml.html import HtmlElement
 from selenium.webdriver.common.by import By
 
-from lxml.html import HtmlElement
+from combo_e2e.config import config
+from combo_e2e.helpers.const import (NAV_PAGE_PATH_NAME, PAGE_PATH_NAME,
+                                     RAW_PAGE_CLASS_POSTFIX,
+                                     RAW_PAGE_PATH_NAME)
+from combo_e2e.helpers.exceptions import ParserException
+from combo_e2e.helpers.utils import LineRange, RelativeImportPath, Utils
+from combo_e2e.pages import (BaseNavigation, BaseNavigationMeta, BasePage,
+                             BasePageMeta, ElementDescriptor, WebElementProxy)
 
 logger = logging.getLogger(__name__)
 
-EMPTY_CLASS_BODY = '    pass\n'
+EMPTY_CLASS_BODY = "    pass\n"
 
 PAGE_CLASS_REPR = """\
 \"""
@@ -111,7 +107,7 @@ class AngularFormatParser:
     Inheritance structure:
     BasePage->GeneratedClassRaw->GeneratedClass(metaclass=BasePageMeta)
 
-    GeneratedClassRaw is filled with attributes which are WebElementProxy proxy-objects, acquired 
+    GeneratedClassRaw is filled with attributes which are WebElementProxy proxy-objects, acquired
     though ElementDescriptor
     """
 
@@ -133,7 +129,10 @@ class AngularFormatParser:
     raw_pages_path: Path = None
     """absolute path to the folder with auto-generated pages, generated at runtime"""
 
-    base_attrs_search_patterns = ['name', config.DATA_E2E_ATTRIBUTE, ]
+    base_attrs_search_patterns = [
+        "name",
+        config.DATA_E2E_ATTRIBUTE,
+    ]
 
     components_relative_path: Path = None
     """pages path, relative to relative_app_path"""
@@ -149,7 +148,7 @@ class AngularFormatParser:
     @classmethod
     def _set_project_paths(cls) -> None:
         if not cls.relative_app_path:
-            raise NotImplementedError('relative_app_path attr must be set to subclass')
+            raise NotImplementedError("relative_app_path attr must be set to subclass")
 
         cls.e2e_path = cls.project_path.joinpath(cls.relative_e2e_path)
         cls.app_path = cls.project_path.joinpath(cls.relative_app_path)
@@ -157,7 +156,7 @@ class AngularFormatParser:
     @classmethod
     def _set_pages_paths(cls) -> None:
         if not cls.app_name:
-            raise NotImplementedError('app_name attr must be set to subclass')
+            raise NotImplementedError("app_name attr must be set to subclass")
 
         cls.pages_path = cls.e2e_path.joinpath(PAGE_PATH_NAME, cls.app_name)
         Utils.create_module_dir(module_path=cls.pages_path)
@@ -184,7 +183,9 @@ class AngularFormatParser:
         or create_head can be called inside, with params required for a specific application.
         :return:
         """
-        raise NotImplementedError('method create_navigation_components must be implemented')
+        raise NotImplementedError(
+            "method create_navigation_components must be implemented"
+        )
 
     @classmethod
     def custom_parse(cls) -> None:
@@ -195,7 +196,7 @@ class AngularFormatParser:
         with params required for a specific application.
         :return:
         """
-        raise NotImplementedError('method custom_parse() must be implemented')
+        raise NotImplementedError("method custom_parse() must be implemented")
 
     @classmethod
     def create_footer(cls) -> None:
@@ -209,9 +210,14 @@ class AngularFormatParser:
             cls._create_navigation(path)
 
     @classmethod
-    def create_side_nav(cls, css_patterns: Optional[List[str]] = None, patterns_by_attr: Optional[List[str]] = None,
-                        file_name_prefix: Optional[str] = None, search_range: Optional[LineRange] = None,
-                        raw_page_custom_attr: Optional[List[str]] = None) -> None:
+    def create_side_nav(
+        cls,
+        css_patterns: Optional[List[str]] = None,
+        patterns_by_attr: Optional[List[str]] = None,
+        file_name_prefix: Optional[str] = None,
+        search_range: Optional[LineRange] = None,
+        raw_page_custom_attr: Optional[List[str]] = None,
+    ) -> None:
         """
         Creates class with left nav panel description.
         Should be called within create_navigation_components.
@@ -225,13 +231,22 @@ class AngularFormatParser:
         """
         if cls.side_nav_relative_path:
             path = cls.app_path.joinpath(cls.side_nav_relative_path)
-            cls._create_navigation(path, custom_css_patterns=css_patterns, custom_patterns_by_attr=patterns_by_attr,
-                                   file_name_prefix=file_name_prefix, search_range=search_range,
-                                   raw_page_custom_attr=raw_page_custom_attr, )
+            cls._create_navigation(
+                path,
+                custom_css_patterns=css_patterns,
+                custom_patterns_by_attr=patterns_by_attr,
+                file_name_prefix=file_name_prefix,
+                search_range=search_range,
+                raw_page_custom_attr=raw_page_custom_attr,
+            )
 
     @classmethod
-    def create_head(cls, file_name_prefix: Optional[str] = None, search_range: Optional[LineRange] = None,
-                    raw_page_custom_attr: Optional[List[str]] = None) -> None:
+    def create_head(
+        cls,
+        file_name_prefix: Optional[str] = None,
+        search_range: Optional[LineRange] = None,
+        raw_page_custom_attr: Optional[List[str]] = None,
+    ) -> None:
         """
         Creates class with header description
         Should be called within create_navigation_components
@@ -243,8 +258,12 @@ class AngularFormatParser:
         """
         if cls.head_relative_path:
             path = cls.app_path.joinpath(cls.head_relative_path)
-            cls._create_navigation(path, file_name_prefix=file_name_prefix, search_range=search_range,
-                                   raw_page_custom_attr=raw_page_custom_attr, )
+            cls._create_navigation(
+                path,
+                file_name_prefix=file_name_prefix,
+                search_range=search_range,
+                raw_page_custom_attr=raw_page_custom_attr,
+            )
 
     @classmethod
     def parse_pages(cls, pages_routes: Dict[str, str]) -> None:
@@ -258,22 +277,32 @@ class AngularFormatParser:
 
         for path in components_path.iterdir():
             if path.is_dir():
-                html_paths = list(path.rglob('*.html'))
+                html_paths = list(path.rglob("*.html"))
                 names = [p.stem for p in html_paths]
                 has_same_names = len(names) != len(set(names))
                 for p in html_paths:
-                    name_prefix = ''
+                    name_prefix = ""
                     if p.parent != path and has_same_names:
-                        name_prefix = p.relative_to(path).parent.name.split('-')[-1]
-                    cls.create_page(p, page_url=pages_routes.get(p.stem, ''), file_name_prefix=name_prefix)
+                        name_prefix = p.relative_to(path).parent.name.split("-")[-1]
+                    cls.create_page(
+                        p,
+                        page_url=pages_routes.get(p.stem, ""),
+                        file_name_prefix=name_prefix,
+                    )
                     added_names.add(p.name)
 
     @classmethod
-    def create_page(cls, path_to_html: Path, custom_css_patterns: Optional[List[str]] = None,
-                    custom_patterns_by_attr: Optional[List[str]] = None, page_url: str = "",
-                    file_name_prefix: Optional[str] = None, search_range: Optional[LineRange] = None) -> None:
+    def create_page(
+        cls,
+        path_to_html: Path,
+        custom_css_patterns: Optional[List[str]] = None,
+        custom_patterns_by_attr: Optional[List[str]] = None,
+        page_url: str = "",
+        file_name_prefix: Optional[str] = None,
+        search_range: Optional[LineRange] = None,
+    ) -> None:
         """
-        Used in parse_pages(), but can be called separately to parse additional pages that are not in directory 
+        Used in parse_pages(), but can be called separately to parse additional pages that are not in directory
         specified in components_relative_path
         :param path_to_html: absolute path to source file
         :param custom_css_patterns: list of css-classes used to search for custom element
@@ -284,10 +313,17 @@ class AngularFormatParser:
         :return:
         """
         try:
-            obj: PageHelper = cls._parse_html(path_to_html, custom_css_patterns, custom_patterns_by_attr,
-                                              file_name_prefix=file_name_prefix, search_range=search_range, )
+            obj: PageHelper = cls._parse_html(
+                path_to_html,
+                custom_css_patterns,
+                custom_patterns_by_attr,
+                file_name_prefix=file_name_prefix,
+                search_range=search_range,
+            )
         except XMLSyntaxError:
-            logger.warning('File %s is empty or have invalid syntax. Skip parsing', path_to_html)
+            logger.warning(
+                "File %s is empty or have invalid syntax. Skip parsing", path_to_html
+            )
             return
 
         additional_imports = [
@@ -298,33 +334,44 @@ class AngularFormatParser:
 
         page_raw = RAW_PAGE_CLASS_REPR.format(
             raw_page_class=obj.raw_class_name,
-            additional_imports='\n'.join(additional_imports),
+            additional_imports="\n".join(additional_imports),
             base_page_class=BasePage.__name__,
             page_url=page_url,
             app_name=cls.app_name,
             base_metaclass=BasePageMeta.__name__,
         )
 
-        page_attrs, page_imports = cls._get_navigations_for_page(path_to_write_page=obj.path_to_write_page)
+        page_attrs, page_imports = cls._get_navigations_for_page(
+            path_to_write_page=obj.path_to_write_page
+        )
         page_imports.extend([obj.base_meta_page_import_path, obj.raw_page_import_path])
 
         page = PAGE_CLASS_REPR.format(
             page_class=obj.class_name,
             raw_page_class=obj.raw_class_name,
             base_metaclass=BasePageMeta.__name__,
-            additional_imports='\n'.join(page_imports),
+            additional_imports="\n".join(page_imports),
         )
 
-        cls._create_page_file(obj.path_to_write_raw_page, page_raw, obj.attributes, rewrite=True)
-        cls._create_page_file(obj.path_to_write_page, page, page_attrs or [EMPTY_CLASS_BODY])
+        cls._create_page_file(
+            obj.path_to_write_raw_page, page_raw, obj.attributes, rewrite=True
+        )
+        cls._create_page_file(
+            obj.path_to_write_page, page, page_attrs or [EMPTY_CLASS_BODY]
+        )
 
         cls._add_page_class_to_init_file(obj.path_to_write_page, obj.class_name)
 
     @classmethod
-    def _parse_html(cls, path_to_html: Path, custom_css_patterns: Optional[List[str]] = None,
-                    custom_patterns_by_attr: Optional[List[str]] = None,
-                    is_nav_component: bool = False, file_name_prefix: str = '',
-                    search_range: Optional[LineRange] = None) -> PageHelper:
+    def _parse_html(
+        cls,
+        path_to_html: Path,
+        custom_css_patterns: Optional[List[str]] = None,
+        custom_patterns_by_attr: Optional[List[str]] = None,
+        is_nav_component: bool = False,
+        file_name_prefix: str = "",
+        search_range: Optional[LineRange] = None,
+    ) -> PageHelper:
         """
         Main method used to parse html pages. Collects data common to all pages
         and returns a PageHelper object. Not to be called directly.
@@ -338,30 +385,41 @@ class AngularFormatParser:
         """
         obj: PageHelper = PageHelper()
         obj.html_obj = Utils.get_html_from_file(path=path_to_html)
-        file_name = Path('_'.join(filter(lambda o: o, [file_name_prefix, path_to_html.name])))
+        file_name = Path(
+            "_".join(filter(lambda o: o, [file_name_prefix, path_to_html.name]))
+        )
 
         obj.class_name = Utils.get_class_name_from_file_name(file_name)
-        obj.raw_class_name = f'{obj.class_name}{RAW_PAGE_CLASS_POSTFIX}'
+        obj.raw_class_name = f"{obj.class_name}{RAW_PAGE_CLASS_POSTFIX}"
 
         obj.py_page_file_name = Utils.get_python_format_file_name(file_name)
-        obj.path_to_write_page = cls._get_path_to_write(cls.pages_path, obj.py_page_file_name, is_nav_component)
-        obj.path_to_write_raw_page = cls._get_path_to_write(cls.raw_pages_path, obj.py_page_file_name, is_nav_component)
+        obj.path_to_write_page = cls._get_path_to_write(
+            cls.pages_path, obj.py_page_file_name, is_nav_component
+        )
+        obj.path_to_write_raw_page = cls._get_path_to_write(
+            cls.raw_pages_path, obj.py_page_file_name, is_nav_component
+        )
 
-        obj.attributes = cls._search_named_tags(page=obj.html_obj, path_to_html=path_to_html,
-                                                custom_css_patterns=custom_css_patterns,
-                                                custom_patterns_by_attr=custom_patterns_by_attr,
-                                                search_range=search_range,
-                                                )
+        obj.attributes = cls._search_named_tags(
+            page=obj.html_obj,
+            path_to_html=path_to_html,
+            custom_css_patterns=custom_css_patterns,
+            custom_patterns_by_attr=custom_patterns_by_attr,
+            search_range=search_range,
+        )
 
         base_class = BaseNavigation if is_nav_component else BasePage
         base_metaclass = BaseNavigationMeta if is_nav_component else BasePageMeta
 
-        obj.base_page_import_path = f'from {base_class.__module__} import {base_class.__name__}'
+        obj.base_page_import_path = (
+            f"from {base_class.__module__} import {base_class.__name__}"
+        )
 
-        obj.base_meta_page_import_path =  f'from {base_metaclass.__module__} import {base_metaclass.__name__}'
+        obj.base_meta_page_import_path = (
+            f"from {base_metaclass.__module__} import {base_metaclass.__name__}"
+        )
 
-        obj.element_descriptor_and_proxy_import_path = \
-            f'from {ElementDescriptor.__module__} import {ElementDescriptor.__name__}, {WebElementProxy.__name__}'
+        obj.element_descriptor_and_proxy_import_path = f"from {ElementDescriptor.__module__} import {ElementDescriptor.__name__}, {WebElementProxy.__name__}"
 
         obj.raw_page_import_path = RelativeImportPath.get(
             root=cls.e2e_path,
@@ -373,17 +431,24 @@ class AngularFormatParser:
         return obj
 
     @classmethod
-    def _get_path_to_write(cls, pages_root: Path, file_name: Path, is_nav_component: bool) -> Path:
+    def _get_path_to_write(
+        cls, pages_root: Path, file_name: Path, is_nav_component: bool
+    ) -> Path:
         if is_nav_component:
             pages_root = pages_root.joinpath(NAV_PAGE_PATH_NAME)
             Utils.create_module_dir(pages_root)
         return pages_root.joinpath(file_name)
 
     @classmethod
-    def _create_navigation(cls, path_to_html: Path, custom_css_patterns: Optional[List[str]] = None,
-                           custom_patterns_by_attr: Optional[List[str]] = None,
-                           file_name_prefix: Optional[str] = None, search_range: Optional[LineRange] = None,
-                           raw_page_custom_attr: Optional[List[str]] = None) -> None:
+    def _create_navigation(
+        cls,
+        path_to_html: Path,
+        custom_css_patterns: Optional[List[str]] = None,
+        custom_patterns_by_attr: Optional[List[str]] = None,
+        file_name_prefix: Optional[str] = None,
+        search_range: Optional[LineRange] = None,
+        raw_page_custom_attr: Optional[List[str]] = None,
+    ) -> None:
         """
         Creates classes for the navigation parts of the page
         :param path_to_html:
@@ -394,9 +459,14 @@ class AngularFormatParser:
         :param raw_page_custom_attr:
         :return:
         """
-        obj: PageHelper = cls._parse_html(path_to_html, custom_css_patterns, custom_patterns_by_attr,
-                                          is_nav_component=True, file_name_prefix=file_name_prefix,
-                                          search_range=search_range, )
+        obj: PageHelper = cls._parse_html(
+            path_to_html,
+            custom_css_patterns,
+            custom_patterns_by_attr,
+            is_nav_component=True,
+            file_name_prefix=file_name_prefix,
+            search_range=search_range,
+        )
 
         additional_imports = [
             obj.base_page_import_path,
@@ -406,28 +476,39 @@ class AngularFormatParser:
 
         page_raw = RAW_NAV_CLASS_REPR.format(
             raw_page_class=obj.raw_class_name,
-            additional_imports='\n'.join(additional_imports),
+            additional_imports="\n".join(additional_imports),
             base_page_class=BaseNavigation.__name__,
         )
 
         page = PAGE_CLASS_REPR.format(
             page_class=obj.class_name,
             raw_page_class=obj.raw_class_name,
-            additional_imports='\n'.join([obj.base_meta_page_import_path, obj.raw_page_import_path]),
+            additional_imports="\n".join(
+                [obj.base_meta_page_import_path, obj.raw_page_import_path]
+            ),
             base_metaclass=BaseNavigationMeta.__name__,
         )
 
         if raw_page_custom_attr:
             obj.attributes.extend(raw_page_custom_attr)
 
-        cls._create_page_file(obj.path_to_write_raw_page, page_raw, obj.attributes or [EMPTY_CLASS_BODY], rewrite=True)
+        cls._create_page_file(
+            obj.path_to_write_raw_page,
+            page_raw,
+            obj.attributes or [EMPTY_CLASS_BODY],
+            rewrite=True,
+        )
         cls._create_page_file(obj.path_to_write_page, page, [EMPTY_CLASS_BODY])
 
-        init_file_path: Path = cls._add_page_class_to_init_file(obj.path_to_write_page, obj.class_name)
+        init_file_path: Path = cls._add_page_class_to_init_file(
+            obj.path_to_write_page, obj.class_name
+        )
         cls.navigation_classes_import_list.append((obj.class_name, init_file_path))
 
     @classmethod
-    def _get_navigations_for_page(cls, path_to_write_page: Path) -> Tuple[List[str], List[str]]:
+    def _get_navigations_for_page(
+        cls, path_to_write_page: Path
+    ) -> Tuple[List[str], List[str]]:
         """
         Creates navigation attributes from navigation classes for each base page
         :param path_to_write_page: absolute path to the module to import to
@@ -436,21 +517,24 @@ class AngularFormatParser:
         attrs = []
         classes_imports = []
         for class_name, full_path in cls.navigation_classes_import_list:
-            attr = NAV_CLASS_OBJ_REPR.format(class_name=class_name, attr_name=class_name.lower())
+            attr = NAV_CLASS_OBJ_REPR.format(
+                class_name=class_name, attr_name=class_name.lower()
+            )
             attrs.append(attr)
             class_import = RelativeImportPath.get(
                 root=cls.e2e_path,
                 to_path=path_to_write_page,
                 from_path=full_path,
-                class_names=[class_name]
+                class_names=[class_name],
             )
             classes_imports.append(class_import)
 
         return attrs, classes_imports
 
     @classmethod
-    def _create_page_file(cls, path: Path, page_header: str, page_attrs: List[str],
-                          rewrite: bool = False) -> None:
+    def _create_page_file(
+        cls, path: Path, page_header: str, page_attrs: List[str], rewrite: bool = False
+    ) -> None:
         """
         Writes generated classes to files
         :param path: absolute path of the file to write to
@@ -463,7 +547,7 @@ class AngularFormatParser:
             logger.info('Path "%s" already exists. It will not be rewritten', path)
             return
 
-        with path.open('w') as f:
+        with path.open("w") as f:
             f.write(page_header)
             if page_attrs:
                 for attr in page_attrs:
@@ -477,26 +561,31 @@ class AngularFormatParser:
         :param class_name:
         :return:
         """
-        init_path: Path = from_path.parent.joinpath('__init__.py')
+        init_path: Path = from_path.parent.joinpath("__init__.py")
         import_path: str = RelativeImportPath.get(
             root=cls.e2e_path,
             to_path=init_path,
             from_path=from_path,
-            class_names=[class_name]
+            class_names=[class_name],
         )
 
-        with init_path.open('r') as f:
+        with init_path.open("r") as f:
             data = f.read()
             if import_path in data:
                 return init_path
-        with init_path.open('a') as f:
-            f.write(f'{import_path}\n')
+        with init_path.open("a") as f:
+            f.write(f"{import_path}\n")
         return init_path
 
     @classmethod
-    def _search_named_tags(cls, page: HtmlElement, path_to_html: Path, custom_css_patterns: List[str] = None,
-                           custom_patterns_by_attr: List[str] = None,
-                           search_range: Optional[LineRange] = None) -> List[str]:
+    def _search_named_tags(
+        cls,
+        page: HtmlElement,
+        path_to_html: Path,
+        custom_css_patterns: List[str] = None,
+        custom_patterns_by_attr: List[str] = None,
+        search_range: Optional[LineRange] = None,
+    ) -> List[str]:
         """
         Main function implementing search for class attributes
         :param page: html object
@@ -512,15 +601,28 @@ class AngularFormatParser:
             patterns_by_attr.extend(custom_patterns_by_attr)
 
         if custom_css_patterns:
-            attrs.extend(cls._search_by_css_patterns(page, path_to_html, custom_css_patterns, search_range))
+            attrs.extend(
+                cls._search_by_css_patterns(
+                    page, path_to_html, custom_css_patterns, search_range
+                )
+            )
         if patterns_by_attr:
-            attrs.extend(cls._search_by_tag_attr_patterns(page, path_to_html, patterns_by_attr, search_range))
+            attrs.extend(
+                cls._search_by_tag_attr_patterns(
+                    page, path_to_html, patterns_by_attr, search_range
+                )
+            )
 
         return attrs
 
     @classmethod
-    def _search_by_css_patterns(cls, page: HtmlElement, path_to_html: Path, custom_css_patterns: List[str],
-                                search_range: Optional[LineRange] = None) -> List[str]:
+    def _search_by_css_patterns(
+        cls,
+        page: HtmlElement,
+        path_to_html: Path,
+        custom_css_patterns: List[str],
+        search_range: Optional[LineRange] = None,
+    ) -> List[str]:
         """
         Function implementing search for attributes by css class
         :param page:
@@ -533,17 +635,30 @@ class AngularFormatParser:
         for pattern in custom_css_patterns:
             el = page.find_class(pattern)
             if not el:
-                logger.warning('Element not found by custom css pattern <%s>', pattern)
+                logger.warning("Element not found by custom css pattern <%s>", pattern)
             if len(el) > 1:
-                raise ParserException('By custom css pattern <%s> found more then one elements: %s',
-                                      pattern, el)
+                raise ParserException(
+                    "By custom css pattern <%s> found more then one elements: %s",
+                    pattern,
+                    el,
+                )
             if search_range and el.sourceline not in search_range:
-                logger.warning('Element found by custom css pattern <%s> not in search %s', pattern, search_range)
-            res.append(cls._format_element_by_css(path_to_html=path_to_html, element=el[0], css_class=pattern))
+                logger.warning(
+                    "Element found by custom css pattern <%s> not in search %s",
+                    pattern,
+                    search_range,
+                )
+            res.append(
+                cls._format_element_by_css(
+                    path_to_html=path_to_html, element=el[0], css_class=pattern
+                )
+            )
         return res
 
     @classmethod
-    def _format_element_by_css(cls, path_to_html: Path, element: HtmlElement, css_class: str) -> str:
+    def _format_element_by_css(
+        cls, path_to_html: Path, element: HtmlElement, css_class: str
+    ) -> str:
         """
         formats the found html element according to the css pattern into an attribute of the generated python class
         :param path_to_html:
@@ -553,11 +668,18 @@ class AngularFormatParser:
         """
         xpath = XPATH_BY_CSS.format(class_name=css_class)
         attribute_value = cls._format_attribute_value(xpath=xpath, many=False)
-        return cls._print_element_in_py_repr(element, css_class, attribute_value, path_to_html, many=False)
+        return cls._print_element_in_py_repr(
+            element, css_class, attribute_value, path_to_html, many=False
+        )
 
     @classmethod
-    def _search_by_tag_attr_patterns(cls, page: HtmlElement, path_to_html: Path, custom_patterns_by_attr: List[str],
-                                     search_range: Optional[LineRange] = None) -> List[str]:
+    def _search_by_tag_attr_patterns(
+        cls,
+        page: HtmlElement,
+        path_to_html: Path,
+        custom_patterns_by_attr: List[str],
+        search_range: Optional[LineRange] = None,
+    ) -> List[str]:
         """
         A function that implements the search for attributes by their attributes
         :param page:
@@ -571,7 +693,7 @@ class AngularFormatParser:
             if not page:
                 continue
             prepared_name = attr_name.lower()
-            search_mask = f'//*[@{prepared_name}]'
+            search_mask = f"//*[@{prepared_name}]"
             elements: List[HtmlElement] = page.xpath(search_mask)
             if elements:
                 added_elements: Dict[str, List] = {}
@@ -579,19 +701,26 @@ class AngularFormatParser:
                     if search_range and el.sourceline not in search_range:
                         continue
                     attr_value = el.attrib[prepared_name]
-                    if '{{' in attr_value:
+                    if "{{" in attr_value:
                         # пропускаем элементы у которых атрибут формируется во время выполнения
                         continue
                     if attr_value in added_elements:
                         added_elements[attr_value][3] = True
                         continue
-                    added_elements[attr_value] = [path_to_html, el, prepared_name, False]
+                    added_elements[attr_value] = [
+                        path_to_html,
+                        el,
+                        prepared_name,
+                        False,
+                    ]
                 for element_data in added_elements.values():
                     res.append(cls._format_element_by_attribute(*element_data))
         return res
 
     @classmethod
-    def _format_element_by_attribute(cls, path_to_html: Path, element: HtmlElement, attr_name: str, many: bool) -> str:
+    def _format_element_by_attribute(
+        cls, path_to_html: Path, element: HtmlElement, attr_name: str, many: bool
+    ) -> str:
         """
         formats the found html element according to the attribute pattern into an attribute of the generated python class
         :param path_to_html:
@@ -604,9 +733,11 @@ class AngularFormatParser:
             attr_name=attr_name,
             attr_value=element.attrib[attr_name],
         )
-        property_name = '_'.join([attr_name, element.attrib[attr_name]])
+        property_name = "_".join([attr_name, element.attrib[attr_name]])
         attribute_value = cls._format_attribute_value(xpath=xpath, many=many)
-        return cls._print_element_in_py_repr(element, property_name, attribute_value, path_to_html, many)
+        return cls._print_element_in_py_repr(
+            element, property_name, attribute_value, path_to_html, many
+        )
 
     @classmethod
     def _format_attribute_value(cls, xpath: str, many: bool):
@@ -621,8 +752,14 @@ class AngularFormatParser:
         return f"{proxy_class}(search_by='{search_by}', value=r{xpath}, many={many})"
 
     @classmethod
-    def _print_element_in_py_repr(cls, element: HtmlElement, property_name: str,
-                                  attribute_value: str, path_to_html: Path, many: bool):
+    def _print_element_in_py_repr(
+        cls,
+        element: HtmlElement,
+        property_name: str,
+        attribute_value: str,
+        path_to_html: Path,
+        many: bool,
+    ):
         """
         formats the found html page element into a python view (i.e. into a class attribute)
         :param element:
@@ -633,13 +770,21 @@ class AngularFormatParser:
         :return:
         """
         formatted_property_name = Utils.format_name_to_python_format(name=property_name)
-        name = Utils.make_attribute_name(tag_name=element.tag, property_name=formatted_property_name)
+        name = Utils.make_attribute_name(
+            tag_name=element.tag, property_name=formatted_property_name
+        )
         relative_path_to_html = path_to_html.relative_to(cls.project_path)
-        annotation = f'{List.__name__}[{WebElementProxy.__name__}]' if many else WebElementProxy.__name__
+        annotation = (
+            f"{List.__name__}[{WebElementProxy.__name__}]"
+            if many
+            else WebElementProxy.__name__
+        )
         kwargs = {
-            'attribute_name': name,
-            'attribute_annotation': annotation,
-            'attribute_value': attribute_value,
-            'path_to_attribute': Utils.path_with_row_number(relative_path_to_html, element.sourceline),
+            "attribute_name": name,
+            "attribute_annotation": annotation,
+            "attribute_value": attribute_value,
+            "path_to_attribute": Utils.path_with_row_number(
+                relative_path_to_html, element.sourceline
+            ),
         }
         return ATTRIBUTE_REPR.format(**kwargs)

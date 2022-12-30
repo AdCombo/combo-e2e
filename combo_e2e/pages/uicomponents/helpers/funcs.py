@@ -4,6 +4,6 @@ def format_xpath_from_parent(xpath: str):
     :param xpath:
     :return:
     """
-    if xpath.startswith('//'):
-        xpath = xpath.replace('//', '/', 1)
-    return f'./{xpath}'
+    if xpath.startswith("//"):
+        xpath = xpath.replace("//", "/", 1)
+    return f"./{xpath}"

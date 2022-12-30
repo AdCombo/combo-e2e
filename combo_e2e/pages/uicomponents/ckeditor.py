@@ -1,8 +1,9 @@
-from combo_e2e.helpers.exceptions import CKEditorException
-from combo_e2e.pages import WebElementProxy
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
+
+from combo_e2e.helpers.exceptions import CKEditorException
+from combo_e2e.pages import WebElementProxy
 
 
 class CKEditorDescriptor:
@@ -32,7 +33,9 @@ class CKEditorDescriptor:
 
         cached_attrs = editor._cached_attrs
         if cached_attrs.get(self.__element_name) is None:
-            cached_attrs[self.__element_name] = editor.get_child_by(self.find_by, self.value)
+            cached_attrs[self.__element_name] = editor.get_child_by(
+                self.find_by, self.value
+            )
         return cached_attrs[self.__element_name]
 
     def __getattribute__(self, item):
@@ -50,7 +53,8 @@ class CKEditor:
     page = SomePage()
     ckeditor = CKEditor(page.ckeditor_mailing)
     """
-    _tag_name = 'ckeditor'
+
+    _tag_name = "ckeditor"
 
     def __init__(self, element: WebElementProxy):
         """
@@ -58,11 +62,15 @@ class CKEditor:
         :param element:
         """
         if element.tag_name.lower() != self._tag_name:
-            raise CKEditorException(f'{self.__class__} only works on <{self._tag_name}> elements, '
-                                    f'not on <{element.tag_name}>')
+            raise CKEditorException(
+                f"{self.__class__} only works on <{self._tag_name}> elements, "
+                f"not on <{element.tag_name}>"
+            )
         if not isinstance(element, WebElementProxy):
-            raise CKEditorException(f'{self.__class__} work only with WebElementProxy instance, '
-                                    f'not {element.__class__}')
+            raise CKEditorException(
+                f"{self.__class__} work only with WebElementProxy instance, "
+                f"not {element.__class__}"
+            )
         self._cached_attrs = {}
         self.el = element
 
@@ -70,10 +78,10 @@ class CKEditor:
         try:
             return self.el.find_element(by=by, value=value)
         except NoSuchElementException:
-            raise CKEditorException('Cannot find selected tab')
+            raise CKEditorException("Cannot find selected tab")
 
-    btn_cut: WebElement = CKEditorDescriptor('cke_button__cut')
-    btn_copy: WebElement = CKEditorDescriptor('cke_button__copy')
-    text_area: WebElement = CKEditorDescriptor('cke_contents_ltr')
-    btn_bold: WebElement = CKEditorDescriptor('cke_button__bold')
-    btn_center_text: WebElement = CKEditorDescriptor('cke_button__justifycenter_icon')
+    btn_cut: WebElement = CKEditorDescriptor("cke_button__cut")
+    btn_copy: WebElement = CKEditorDescriptor("cke_button__copy")
+    text_area: WebElement = CKEditorDescriptor("cke_contents_ltr")
+    btn_bold: WebElement = CKEditorDescriptor("cke_button__bold")
+    btn_center_text: WebElement = CKEditorDescriptor("cke_button__justifycenter_icon")

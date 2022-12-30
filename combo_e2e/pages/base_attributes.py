@@ -4,14 +4,17 @@ in AbstractBasePage can be used
 """
 from functools import wraps
 from inspect import ismethod
-from typing import Tuple, List, Set
+from typing import List, Set, Tuple
+
+from selenium.common.exceptions import (NoSuchElementException,
+                                        StaleElementReferenceException,
+                                        WebDriverException)
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support import expected_conditions as EC
 
 from combo_e2e.config import config
 from combo_e2e.helpers.exceptions import BasePageException
-from selenium.common.exceptions import StaleElementReferenceException, WebDriverException, NoSuchElementException
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 
 DATA_E2E_ATTRIBUTE_NAME = config.DATA_E2E_ATTRIBUTE
 
@@ -33,6 +36,7 @@ class WebElementProxy(WebElement):
     This class proxies access to the WebElement instance, implementing additional logic,
     to ensure that angular application was loaded
     """
+
     page = None
     """through this attribute, all methods of the BasePage page can be accessed"""
     _obj: WebElement = None
@@ -46,11 +50,11 @@ class WebElementProxy(WebElement):
     # noinspection PyMissingConstructor
     def __init__(self, page, by, value, target_object, attr_name=None):
         if isinstance(target_object, WebElementProxy):
-            raise BasePageException('target_object already is instance WebElementProxy')
-        object.__setattr__(self, 'page', page)
-        object.__setattr__(self, '_obj', target_object)
-        object.__setattr__(self, 'locator', (by, value))
-        object.__setattr__(self, 'attr_name', attr_name)
+            raise BasePageException("target_object already is instance WebElementProxy")
+        object.__setattr__(self, "page", page)
+        object.__setattr__(self, "_obj", target_object)
+        object.__setattr__(self, "locator", (by, value))
+        object.__setattr__(self, "attr_name", attr_name)
 
     def __getattribute__(self, name: str):
         if proxy_has_attr(name):
@@ -58,7 +62,7 @@ class WebElementProxy(WebElement):
         else:
             attr = getattr(self._obj, name)
 
-        if ismethod(attr) and not name.startswith('__'):
+        if ismethod(attr) and not name.startswith("__"):
             decorator = catch_not_attach_to_session(self)
             return decorator(attr)
         return attr
@@ -77,21 +81,17 @@ class WebElementProxy(WebElement):
 
     @property
     def value(self):
-        return self._obj.get_attribute('value')
+        return self._obj.get_attribute("value")
 
     def until(self, condition, *args, **kwargs):
-        self.page.wait.until(
-            condition(self.locator, *args, **kwargs)
-        )
+        self.page.wait.until(condition(self.locator, *args, **kwargs))
 
     def until_not(self, condition, *args, **kwargs):
-        self.page.wait.until_not(
-            condition(self.locator, *args, **kwargs)
-        )
+        self.page.wait.until_not(condition(self.locator, *args, **kwargs))
 
     def click(self, focus_on_opened_tab: bool = True):
         """
-        wait for the element to be available and click on it 
+        wait for the element to be available and click on it
         (does not wait for the completion of something after the click)
         :focus_on_opened_tab: Whether it is needed to focus on a new tab if it's going to be open
         :return:
@@ -129,7 +129,7 @@ class WebElementProxy(WebElement):
             self.page._cached_attrs.pop(self.attr_name, None)
         obj = self.page._find_element(*self.locator)
 
-        object.__setattr__(self, '_obj', obj)
+        object.__setattr__(self, "_obj", obj)
         # adding element back to the page cache, so that it won't be searched again while accessed next time
         # thought the descriptor
         if self.attr_name:
@@ -141,14 +141,14 @@ def get_subclass_attributes() -> Set[str]:
     Helper that returns attribute names only of the WebElementProxy proxy class
     :return:
     """
-    if hasattr(get_subclass_attributes, '__cached_attrs'):
+    if hasattr(get_subclass_attributes, "__cached_attrs"):
         return get_subclass_attributes.__cached_attrs
 
     bases = WebElementProxy.__bases__
     if len(bases) > 1:
-        raise NotImplemented('It works only with one parent classes')
+        raise NotImplemented("It works only with one parent classes")
     attrs = set(WebElementProxy.__dict__.keys())
-    setattr(get_subclass_attributes, '__cached_attrs', attrs)
+    setattr(get_subclass_attributes, "__cached_attrs", attrs)
     return attrs
 
 
@@ -173,6 +173,7 @@ def catch_not_attach_to_session(current_obj: WebElementProxy):
     :param current_obj:
     :return:
     """
+
     def decorator(function):
         @wraps(function)
         def wrapper(*args, **kwargs):
@@ -184,7 +185,9 @@ def catch_not_attach_to_session(current_obj: WebElementProxy):
             except NoSuchElementException:
                 raise
             except WebDriverException as ex:
-                raise WebElementProxyException(str(ex), current_obj.attr_name or 'Object didnt attach to Page')
+                raise WebElementProxyException(
+                    str(ex), current_obj.attr_name or "Object didnt attach to Page"
+                )
 
         return wrapper
 
@@ -196,6 +199,7 @@ class ElementDescriptor:
     Descriptor for WebElementProxy. Allows to implement WebElement lazy loading,
     i. e. the selenium object is created only when class attribute is accessed through this descriptor.
     """
+
     search_by = None
     """element search type (by xpath, class, etc.)"""
     value = None
@@ -205,9 +209,7 @@ class ElementDescriptor:
     __element_name = None
     """the name of the base page attribute that stores the descriptor instance"""
 
-    def __init__(self, search_by=None,
-                 value=None,
-                 many=False):
+    def __init__(self, search_by=None, value=None, many=False):
         """
         The only available method to pass parameters for searching for a web element on a page
         :param search_by: locator type (default: xpath)
@@ -224,7 +226,9 @@ class ElementDescriptor:
 
     def _validate_params(self):
         if not self.search_by or not self.value:
-            raise BasePageException('[value, search_by] param must be passed to ElementDescriptor')
+            raise BasePageException(
+                "[value, search_by] param must be passed to ElementDescriptor"
+            )
 
     def __set_name__(self, owner, name):
         self.__element_name = name
@@ -288,6 +292,7 @@ class ListOfElementDescriptor:
     You can use end_name_part parametr:
     elements = ListOfElementDescriptor(base_name_parts=['row_'], end_name_part='_foo')
     """
+
     base_name_parts: list = None
     """list of common parts of the attribute value of group of elements"""
     end_name_part: str = None
@@ -298,10 +303,16 @@ class ListOfElementDescriptor:
     """flag that multiple elements will be found by full name"""
     page = None
     # only xpath search is supported for now
-    search_by: str = 'xpath'
+    search_by: str = "xpath"
 
-    def __init__(self, base_name_parts: List[str], end_name_part: str = None, many: bool = False,
-                 tag_attr_name: str = DATA_E2E_ATTRIBUTE_NAME, context=None):
+    def __init__(
+        self,
+        base_name_parts: List[str],
+        end_name_part: str = None,
+        many: bool = False,
+        tag_attr_name: str = DATA_E2E_ATTRIBUTE_NAME,
+        context=None,
+    ):
         """
 
         :param base_name_parts: list of common parts of the attribute value of group of elements
@@ -311,9 +322,11 @@ class ListOfElementDescriptor:
         :param context:
         """
         if not isinstance(base_name_parts, list):
-            raise BasePageException('base_name_parts must be list of string')
-        self.base_name_parts = [name.strip('_') for name in base_name_parts]
-        self.end_name_part = end_name_part.strip('_') if end_name_part else end_name_part
+            raise BasePageException("base_name_parts must be list of string")
+        self.base_name_parts = [name.strip("_") for name in base_name_parts]
+        self.end_name_part = (
+            end_name_part.strip("_") if end_name_part else end_name_part
+        )
         self.many = many
         self.tag_attr_name = tag_attr_name
         self.page = context
@@ -326,7 +339,7 @@ class ListOfElementDescriptor:
         :return:
         """
         if not all([isinstance(num, int) for num in numbers]):
-            raise BasePageException('all of parameters must be int')
+            raise BasePageException("all of parameters must be int")
         return self.get(*numbers)
 
     def get_no_load(self, *numbers) -> ElementDescriptor:
@@ -362,7 +375,9 @@ class ListOfElementDescriptor:
 
     def _construct_attribute_descriptor(self, attr_name: str) -> ElementDescriptor:
         value = self._print_search_value(attr_name)
-        descriptor = ElementDescriptor(search_by=self.search_by, value=value, many=self.many)
+        descriptor = ElementDescriptor(
+            search_by=self.search_by, value=value, many=self.many
+        )
         descriptor.__set_name__(None, attr_name)
         return descriptor
 
@@ -372,17 +387,19 @@ class ListOfElementDescriptor:
     def _make_attr_name(self, args):
         params = list(map(str, args))
         if len(params) != len(self.base_name_parts):
-            raise BasePageException(f'You pass to get method only {len(params)} params '
-                                    f'but required {len(self.base_name_parts)}')
+            raise BasePageException(
+                f"You pass to get method only {len(params)} params "
+                f"but required {len(self.base_name_parts)}"
+            )
 
         indexed_names = []
         for val in zip(self.base_name_parts, params):
-            indexed_names.append(('_' if val[0] else '').join(val))
+            indexed_names.append(("_" if val[0] else "").join(val))
 
         if self.end_name_part:
             indexed_names.append(self.end_name_part)
 
-        return '_'.join(indexed_names)
+        return "_".join(indexed_names)
 
     def __get__(self, page, objtype=None):
         self.page = page
@@ -390,7 +407,9 @@ class ListOfElementDescriptor:
 
     def __getitem__(self, item: int):
         if not isinstance(item, int):
-            raise BasePageException('ListOfElementDescriptor support only number access to attributes')
-        if getattr(self.page, 'nested_table', None) is True:
+            raise BasePageException(
+                "ListOfElementDescriptor support only number access to attributes"
+            )
+        if getattr(self.page, "nested_table", None) is True:
             return self.get_relative(item)
         return self.get(item)

@@ -1,24 +1,24 @@
 from enum import Enum
 from typing import Optional, Union
 
-from combo_e2e.pages import WebElementProxy
 from lxml.html import HtmlElement
+from selenium.webdriver.remote.webelement import WebElement
 
 from combo_e2e.helpers.exceptions import NoSuchElementError
+from combo_e2e.pages import WebElementProxy
 from combo_e2e.pages.uicomponents.helpers.parsers import get_html_from_string
-from selenium.webdriver.remote.webelement import WebElement
 
 
 class _ToastTypes(Enum):
-    error = 'adc-toast-error'
-    info = 'adc-toast-info'
-    success = 'adc-toast-success'
-    warning = 'adc-toast-warning'
+    error = "adc-toast-error"
+    info = "adc-toast-info"
+    success = "adc-toast-success"
+    warning = "adc-toast-warning"
 
 
 class Toast:
     """
-    This class caches html representaion of popped out notification, allows access to its main components: 
+    This class caches html representaion of popped out notification, allows access to its main components:
     header, main text, nofitication type (success, error, info etc.), but doesn't allow interaction on the page
     because notification disappears and leaving following structure behind:
     <toaster-container>
@@ -26,10 +26,11 @@ class Toast:
     </toaster-container>
     NoSuchElementError is raised if passed element linked with already disappeared notification
     """
-    component_id = 'adc-toast-container'
-    _component_class = 'adc-toast'
-    _title_class = 'adc-toast-title'
-    _message_class = 'adc-toast-body'
+
+    component_id = "adc-toast-container"
+    _component_class = "adc-toast"
+    _title_class = "adc-toast-title"
+    _message_class = "adc-toast-body"
 
     component: HtmlElement = None
     """
@@ -41,9 +42,13 @@ class Toast:
 
     def __init__(self, element: Union[WebElement, WebElementProxy]):
         self._element = element
-        self._outer_html: HtmlElement = get_html_from_string(element.get_attribute('outerHTML'))
-        if self.component_id != element.get_attribute('id'):
-            raise NoSuchElementError(f'Toast element container must have id="{self.component_id}".')
+        self._outer_html: HtmlElement = get_html_from_string(
+            element.get_attribute("outerHTML")
+        )
+        if self.component_id != element.get_attribute("id"):
+            raise NoSuchElementError(
+                f'Toast element container must have id="{self.component_id}".'
+            )
 
         self.component = self._get_base_element()
         self._type = self._get_type()
@@ -51,7 +56,9 @@ class Toast:
     def _get_base_element(self):
         component = self._outer_html.find_class(self._component_class)
         if not component:
-            raise NoSuchElementError(f'Toast element disappeared from the page when the object was created')
+            raise NoSuchElementError(
+                f"Toast element disappeared from the page when the object was created"
+            )
         return component[0]
 
     def _get_type(self):

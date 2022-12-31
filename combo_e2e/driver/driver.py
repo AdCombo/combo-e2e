@@ -28,7 +28,14 @@ class E2EDriver:
             path = ChromeDriverLoader.driver_path
             if not path:
                 raise AttributeError("Get empty driver path.")
-            service = Service(path)
+            svc_args = []
+            if config.CHROME_DRIVER_VERBOSE:
+                svc_args.append('--verbose')
+                if not config.CHROME_DRIVER_LOG_PATH:
+                    raise AttributeError("log path not defined but verbose has been set. Please specify CHROME_DRIVER_LOG_PATH.")
+                svc_args.append(f'--log-path={config.CHROME_DRIVER_LOG_PATH}')
+
+            service = Service(path, service_args=svc_args)
             service.start()
             setattr(cls, "__selenium_service", service)
         return getattr(cls, "__selenium_service")
@@ -36,15 +43,11 @@ class E2EDriver:
     @classmethod
     def _create(cls) -> WebDriver:
         set_log_level_from_config()
-        kwargs = {}
         serv = cls._get_selenium_service()
-        caps = cls._make_desired_capabilities()
-        options = cls._make_chrome_options()
-        if options.arguments:
-            kwargs["options"] = options
-        driver: WebDriver = webdriver.Remote(
-            serv.service_url, desired_capabilities=caps, **kwargs
+        options = cls._make_desired_capabilities(
+            cls._make_chrome_options()
         )
+        driver: WebDriver = webdriver.Remote(serv.service_url, options=options)
         if config.DRIVER_PAGE_LOAD_TIMEOUT:
             driver.set_page_load_timeout(config.DRIVER_PAGE_LOAD_TIMEOUT)
         return driver
@@ -53,10 +56,11 @@ class E2EDriver:
     def _make_chrome_options(cls) -> Options:
         options = Options()
         if config.CHROME_HEADLESS_MODE:
-            options.add_argument("--headless")
+            options.headless = True
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-setuid-sandbox")
             options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--disable-gpu")
         if config.CHROME_OPTIONS:
             parts = filter(lambda o: o.strip(), config.CHROME_OPTIONS.split(";"))
             for opt in parts:
@@ -87,17 +91,16 @@ class E2EDriver:
         return options
 
     @classmethod
-    def _make_desired_capabilities(cls) -> DesiredCapabilities:
-        caps = DesiredCapabilities.CHROME
-        chrome_options = Options()
-        chrome_options.add_argument("disable-gpu")
-        if not config.CHROME_HEADLESS_MODE:
-            chrome_options.add_argument("start-maximized")
+    def _make_desired_capabilities(cls, options: Options) -> Options:
+        for k, v in DesiredCapabilities.CHROME.items():
+            options.set_capability(k, v)
 
-        caps.update(chrome_options.to_capabilities().copy())
+        if not config.CHROME_HEADLESS_MODE:
+            options.add_argument("--start-maximized")
+
         if config.ENABLE_CONSOLE_LOG:
-            caps["goog:loggingPrefs"] = {"browser": "ALL"}
-        return caps
+            options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
+        return options
 
     @classmethod
     def _destroy(cls) -> None:

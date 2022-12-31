@@ -52,6 +52,8 @@ class Config(BaseConfig):
     KILL_DRIVER = True
     # changes selenium default load timeout
     DRIVER_PAGE_LOAD_TIMEOUT = 20
+    CHROME_DRIVER_LOG_PATH = ""
+    CHROME_DRIVER_VERBOSE = False
 
     # chrome config
     # headless_mode (set to true while using in environment without graphic shell)

@@ -22,9 +22,9 @@ setup(
     zip_safe=False,
     platforms="any",
     install_requires=[
-        'selenium==4.7.2',
-        'requests==2.26.0',
-        'lxml==4.9.2',
+        "selenium==4.7.2",
+        "requests==2.26.0",
+        "lxml==4.9.2",
     ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],

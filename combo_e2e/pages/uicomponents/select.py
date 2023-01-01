@@ -6,9 +6,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 
-from combo_e2e.helpers.exceptions import (BaseSelectException,
-                                          NoSuchElementError,
-                                          UnexpectedTagError)
+from combo_e2e.helpers.exceptions import (
+    BaseSelectException,
+    NoSuchElementError,
+    UnexpectedTagError,
+)
 from combo_e2e.pages import WebElementProxy
 
 
@@ -52,7 +54,9 @@ class Select:
         Get list with all available options
         :return:
         """
-        return self._find_options(By.XPATH, f'//*[contains(@class,"{self._option_class}")]')
+        return self._find_options(
+            By.XPATH, f'//*[contains(@class,"{self._option_class}")]'
+        )
 
     def _find_options(self, by: str, value: str) -> List[WebElement]:
         """

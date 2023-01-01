@@ -1,4 +1,5 @@
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
 
 from combo_e2e.helpers.exceptions import TabSetException
 from combo_e2e.pages import WebElementProxy
@@ -62,7 +63,7 @@ class TabView:
 
     def _get_child_by_xpath(self, xpath: str):
         try:
-            return self._el.find_element_by_xpath(xpath)
+            return self._el.find_element(By.XPATH, xpath)
         except NoSuchElementException:
             raise TabSetException("Cannot find selected tab")
 

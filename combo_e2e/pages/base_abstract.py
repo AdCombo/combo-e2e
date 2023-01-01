@@ -9,9 +9,11 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 from typing import Dict, List, Optional, Set, Union
 
-from selenium.common.exceptions import (ElementNotVisibleException,
-                                        NoSuchCookieException,
-                                        NoSuchElementException)
+from selenium.common.exceptions import (
+    ElementNotVisibleException,
+    NoSuchCookieException,
+    NoSuchElementException,
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
@@ -347,8 +349,12 @@ class AbstractBasePage(metaclass=ABCMeta):
         if res:
             return res[0]
 
-    def wait_element_clickable(self, element_descriptor: Union[ElementDescriptor, WebElementProxy, Table],
-                               timeout: int = None, frequency: float = 0.2) -> None:
+    def wait_element_clickable(
+        self,
+        element_descriptor: Union[ElementDescriptor, WebElementProxy, Table],
+        timeout: int = None,
+        frequency: float = 0.2,
+    ) -> None:
         """
         Waits for element to checking an element is visible and enabled such that you can click it
         :param element_descriptor: elements descriptor
@@ -357,6 +363,10 @@ class AbstractBasePage(metaclass=ABCMeta):
         :return:
         """
         if not isinstance(element_descriptor, (ElementDescriptor, Table)):
-            raise BasePageException('It wait only Element Descriptor instance objects hz what is that')
+            raise BasePageException(
+                "It wait only Element Descriptor instance objects hz what is that"
+            )
         search_pattern = (element_descriptor.search_by, element_descriptor.value)
-        self.custom_wait(timeout, frequency).until(EC.element_to_be_clickable(search_pattern))
+        self.custom_wait(timeout, frequency).until(
+            EC.element_to_be_clickable(search_pattern)
+        )

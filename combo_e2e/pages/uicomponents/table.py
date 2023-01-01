@@ -6,14 +6,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
 from combo_e2e.config import config
-from combo_e2e.helpers.exceptions import (BaseTableException,
-                                          TableColumnNotFound,
-                                          TableElementNotFound,
-                                          TableRowNotFound)
+from combo_e2e.helpers.exceptions import (
+    BaseTableException,
+    TableColumnNotFound,
+    TableElementNotFound,
+    TableRowNotFound,
+)
 from combo_e2e.pages import WebElementProxy
-from combo_e2e.pages.uicomponents.helpers import (parse_table_cell,
-                                                  parse_table_row,
-                                                  parse_table_thead)
+from combo_e2e.pages.uicomponents.helpers import (
+    parse_table_cell,
+    parse_table_row,
+    parse_table_thead,
+)
 
 TABLE_TAG = config.DEFAULT_TABLE_TAG
 NESTED_TABLE_TAG = config.NESTED_TABLE_TAG
@@ -328,8 +332,8 @@ class Table:
         )
 
     def _parse_header(self):
-        head_html = self._table.find_element_by_xpath(
-            f".{self.r_xpath_header}"
+        head_html = self._table.find_element(
+            "xpath", f".{self.r_xpath_header}"
         ).get_attribute("innerHTML")
         self.columns_indexes = parse_table_thead(
             head_html, self._head_tag_text_key, self._head_search_attrs
@@ -443,7 +447,7 @@ class Table:
         """
         xpath = "".join([self.value, xpath])
         try:
-            el = self._table.find_element_by_xpath(xpath)
+            el = self._table.find_element(By.XPATH, xpath)
         except NoSuchElementException:
             raise TableElementNotFound(
                 f'Element not found by {By.XPATH} value: "{xpath}"'

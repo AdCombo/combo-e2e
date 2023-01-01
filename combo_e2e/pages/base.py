@@ -11,10 +11,13 @@ from combo_e2e.config import config
 from combo_e2e.helpers.const import PAGE_READY_SCRIPT
 from combo_e2e.helpers.exceptions import BasePageException, PageNotOpened
 from combo_e2e.helpers.page_helper import check_js_condition_is_true
-from combo_e2e.helpers.utils import (add_url_params, get_base_url,
-                                     get_id_from_url,
-                                     get_parents_classes_attrs,
-                                     split_url_and_params)
+from combo_e2e.helpers.utils import (
+    add_url_params,
+    get_base_url,
+    get_id_from_url,
+    get_parents_classes_attrs,
+    split_url_and_params,
+)
 from combo_e2e.pages.base_abstract import AbstractBasePage
 from combo_e2e.pages.base_navigation import BaseNavigation
 from combo_e2e.pages.uicomponents import ConfirmDialog, Toast

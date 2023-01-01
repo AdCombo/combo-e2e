@@ -6,11 +6,14 @@ from datetime import date, datetime
 from typing import Callable, Optional
 
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
-from combo_e2e.helpers.exceptions import (DatePickerAttributeError,
-                                          DatePickerException,
-                                          DatePickerNotFound)
+from combo_e2e.helpers.exceptions import (
+    DatePickerAttributeError,
+    DatePickerException,
+    DatePickerNotFound,
+)
 from combo_e2e.pages import WebElementProxy
 from combo_e2e.pages.uicomponents.helpers import format_xpath_from_parent
 
@@ -54,7 +57,7 @@ class AttributeDescriptor:
         parent: WebElement = datepicker.component
         xpath = format_xpath_from_parent(self.value)
         try:
-            return parent.find_element_by_xpath(xpath)
+            return parent.find_element(By.XPATH, xpath)
         except NoSuchElementException:
             raise DatePickerAttributeError(
                 f"Attribute of datepicker not found by xpath: {xpath}"
@@ -75,7 +78,7 @@ class DatePicker:
     default_time_format = "%d/%m/%Y %H:%M"
 
     def __init__(self, element: WebElementProxy):
-        parent_element = element.find_element_by_xpath("./..")
+        parent_element = element.find_element(By.XPATH, "./..")
         self.component = self._find_component(parent_element)
         self.picker_panel = self._find_picker_panel(self.component)
         self._input = element
@@ -88,7 +91,7 @@ class DatePicker:
     def _find_component(self, parent_element: WebElement) -> WebElement:
         try:
             xpath = format_xpath_from_parent(self.tag_name)
-            return parent_element.find_element_by_xpath(xpath)
+            return parent_element.find_element(By.XPATH, xpath)
         except NoSuchElementException:
             raise DatePickerNotFound(
                 f"<{self.tag_name}> tag not found in parent tag of this element"
@@ -96,7 +99,7 @@ class DatePicker:
 
     def _find_picker_panel(self, component: WebElement) -> WebElement:
         try:
-            return component.find_element_by_class_name(self.body_class)
+            return component.find_element(By.CLASS_NAME, self.body_class)
         except NoSuchElementException:
             raise DatePickerNotFound(
                 f"Cannot find datepicker body by class {self.body_class}"

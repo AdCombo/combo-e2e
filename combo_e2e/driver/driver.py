@@ -30,10 +30,12 @@ class E2EDriver:
                 raise AttributeError("Get empty driver path.")
             svc_args = []
             if config.CHROME_DRIVER_VERBOSE:
-                svc_args.append('--verbose')
+                svc_args.append("--verbose")
                 if not config.CHROME_DRIVER_LOG_PATH:
-                    raise AttributeError("log path not defined but verbose has been set. Please specify CHROME_DRIVER_LOG_PATH.")
-                svc_args.append(f'--log-path={config.CHROME_DRIVER_LOG_PATH}')
+                    raise AttributeError(
+                        "log path not defined but verbose has been set. Please specify CHROME_DRIVER_LOG_PATH."
+                    )
+                svc_args.append(f"--log-path={config.CHROME_DRIVER_LOG_PATH}")
 
             service = Service(path, service_args=svc_args)
             service.start()
@@ -44,9 +46,7 @@ class E2EDriver:
     def _create(cls) -> WebDriver:
         set_log_level_from_config()
         serv = cls._get_selenium_service()
-        options = cls._make_desired_capabilities(
-            cls._make_chrome_options()
-        )
+        options = cls._make_desired_capabilities(cls._make_chrome_options())
         driver: WebDriver = webdriver.Remote(serv.service_url, options=options)
         if config.DRIVER_PAGE_LOAD_TIMEOUT:
             driver.set_page_load_timeout(config.DRIVER_PAGE_LOAD_TIMEOUT)

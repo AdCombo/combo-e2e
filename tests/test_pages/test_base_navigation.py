@@ -1,7 +1,13 @@
 from typing import List
 from unittest.mock import Mock
 
-from combo_e2e.pages import ElementDescriptor, WebElementProxy, BaseNavigation, BaseNavigationMeta, BasePage
+from combo_e2e.pages import (
+    ElementDescriptor,
+    WebElementProxy,
+    BaseNavigation,
+    BaseNavigationMeta,
+    BasePage,
+)
 
 
 class MockWebElement:
@@ -16,14 +22,12 @@ class MockWebElement:
 
 
 class MockedElementDescriptor(ElementDescriptor):
-
     def _search_element(self, context):
         mocked = WebElementProxy(
             page=context,
-            by='test',
-            value='test',
+            by="test",
+            value="test",
             target_object=MockWebElement(),
-
         )
         if self.many:
             return [mocked]
@@ -31,25 +35,27 @@ class MockedElementDescriptor(ElementDescriptor):
 
 
 class NavigationTestClass(BaseNavigation, metaclass=BaseNavigationMeta):
-    page = 'test_page'
+    page = "test_page"
 
-    nav_link: MockWebElement = MockedElementDescriptor(value='a', search_by='test')
+    nav_link: MockWebElement = MockedElementDescriptor(value="a", search_by="test")
 
 
 class BaseTestClass(BasePage):
-    page_url = 'test'
+    page_url = "test"
     _cached_attrs = None
     wait = Mock()
 
     # noinspection PyMissingConstructor
     def __init__(self):
         self._driver = Mock(window_handles=[])
-        self._driver.current_url = 'test'
+        self._driver.current_url = "test"
         self._cached_attrs = {}
         self._init_navigation_components()
 
-    element: MockWebElement = MockedElementDescriptor(value='a', search_by='b')
-    elements: List[MockWebElement] = MockedElementDescriptor(value='c', search_by='d', many=True)
+    element: MockWebElement = MockedElementDescriptor(value="a", search_by="b")
+    elements: List[MockWebElement] = MockedElementDescriptor(
+        value="c", search_by="d", many=True
+    )
 
     nav: NavigationTestClass = NavigationTestClass()
 

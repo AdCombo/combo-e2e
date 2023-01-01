@@ -8,13 +8,22 @@ from lxml.html import HtmlElement
 from selenium.webdriver.common.by import By
 
 from combo_e2e.config import config
-from combo_e2e.helpers.const import (NAV_PAGE_PATH_NAME, PAGE_PATH_NAME,
-                                     RAW_PAGE_CLASS_POSTFIX,
-                                     RAW_PAGE_PATH_NAME)
+from combo_e2e.helpers.const import (
+    NAV_PAGE_PATH_NAME,
+    PAGE_PATH_NAME,
+    RAW_PAGE_CLASS_POSTFIX,
+    RAW_PAGE_PATH_NAME,
+)
 from combo_e2e.helpers.exceptions import ParserException
 from combo_e2e.helpers.utils import LineRange, RelativeImportPath, Utils
-from combo_e2e.pages import (BaseNavigation, BaseNavigationMeta, BasePage,
-                             BasePageMeta, ElementDescriptor, WebElementProxy)
+from combo_e2e.pages import (
+    BaseNavigation,
+    BaseNavigationMeta,
+    BasePage,
+    BasePageMeta,
+    ElementDescriptor,
+    WebElementProxy,
+)
 
 logger = logging.getLogger(__name__)
 

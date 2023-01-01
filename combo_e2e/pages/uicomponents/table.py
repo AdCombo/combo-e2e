@@ -462,7 +462,7 @@ class Table:
         """
         xpath = "".join([self.value, xpath])
         try:
-            elements = self._table.find_elements_by_xpath(xpath)
+            elements = self._table.find_elements(By.XPATH, xpath)
         except NoSuchElementException:
             raise TableElementNotFound(
                 f'Elements not found by {By.XPATH} value: "{xpath}"'

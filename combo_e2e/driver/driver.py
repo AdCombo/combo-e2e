@@ -5,6 +5,10 @@ from typing import Optional
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.remote import remote_connection
+from selenium.webdriver.remote.command import Command
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.remote.remote_connection import LOGGER
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.remote_connection import LOGGER
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -47,7 +51,11 @@ class E2EDriver:
         set_log_level_from_config()
         serv = cls._get_selenium_service()
         options = cls._make_desired_capabilities(cls._make_chrome_options())
-        driver: WebDriver = webdriver.Remote(serv.service_url, options=options)
+        rmt_con = remote_connection.RemoteConnection(serv.service_url)
+        rmt_con._commands.update({
+            Command.UPLOAD_FILE: ("POST", "/session/$sessionId/file")
+        })
+        driver: WebDriver = webdriver.Remote(command_executor=rmt_con, options=options)
         if config.DRIVER_PAGE_LOAD_TIMEOUT:
             driver.set_page_load_timeout(config.DRIVER_PAGE_LOAD_TIMEOUT)
         return driver

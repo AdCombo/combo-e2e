@@ -25,16 +25,16 @@ test_row = """
 
 
 def test_parse_table_thead():
-    res = parse_table_thead(test_data, 'text', {'ng-reflect-field', 'psortablecolumn'})
+    res = parse_table_thead(test_data, "text", {"ng-reflect-field", "psortablecolumn"})
 
-    assert 1 == res['text'].get('#')
-    assert 1 == res['psortablecolumn'].get('id')
-    assert 2 == res['text'].get('Name')
-    assert 2 == res['ng-reflect-field'].get('name')
-    assert 2 == res['psortablecolumn'].get('name')
+    assert 1 == res["text"].get("#")
+    assert 1 == res["psortablecolumn"].get("id")
+    assert 2 == res["text"].get("Name")
+    assert 2 == res["ng-reflect-field"].get("name")
+    assert 2 == res["psortablecolumn"].get("name")
 
 
 def test_parse_table_row():
     res = parse_table_row(test_row)
-    assert res[0] == '2'
-    assert res[1] == 'test Compaign'
+    assert res[0] == "2"
+    assert res[1] == "test Compaign"

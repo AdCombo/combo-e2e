@@ -5,11 +5,17 @@ Time is set accoring to client time zone!
 from datetime import date, datetime
 from typing import Callable, Optional
 
-from combo_e2e.helpers.exceptions import DatePickerNotFound, DatePickerException, DatePickerAttributeError
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+
+from combo_e2e.helpers.exceptions import (
+    DatePickerAttributeError,
+    DatePickerException,
+    DatePickerNotFound,
+)
 from combo_e2e.pages import WebElementProxy
 from combo_e2e.pages.uicomponents.helpers import format_xpath_from_parent
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.remote.webelement import WebElement
 
 
 class AttributeDescriptor:
@@ -28,10 +34,12 @@ class AttributeDescriptor:
 
     def _validate_params(self):
         if not self.value:
-            raise DatePickerException('value param must be passed to AttributeDescriptor')
+            raise DatePickerException(
+                "value param must be passed to AttributeDescriptor"
+            )
 
     def __set_name__(self, owner, name):
-        self.__attribute_name = '_'.join([owner.__class__.__name__.lower(), name])
+        self.__attribute_name = "_".join([owner.__class__.__name__.lower(), name])
 
     def __get__(self, datepicker, objtype=None):
         if datepicker is None:
@@ -49,15 +57,17 @@ class AttributeDescriptor:
         parent: WebElement = datepicker.component
         xpath = format_xpath_from_parent(self.value)
         try:
-            return parent.find_element_by_xpath(xpath)
+            return parent.find_element(By.XPATH, xpath)
         except NoSuchElementException:
-            raise DatePickerAttributeError(f'Attribute of datepicker not found by xpath: {xpath}')
+            raise DatePickerAttributeError(
+                f"Attribute of datepicker not found by xpath: {xpath}"
+            )
 
 
 class DatePicker:
-    tag_name = 'ngx-daterangepicker-material'
+    tag_name = "ngx-daterangepicker-material"
     """tag name that contains the component"""
-    body_class = 'md-drppicker'
+    body_class = "md-drppicker"
     """name of the class by which datepicker body can be found"""
     component: WebElement = None
     """
@@ -68,26 +78,32 @@ class DatePicker:
     default_time_format = "%d/%m/%Y %H:%M"
 
     def __init__(self, element: WebElementProxy):
-        parent_element = element.find_element_by_xpath('./..')
+        parent_element = element.find_element(By.XPATH, "./..")
         self.component = self._find_component(parent_element)
         self.picker_panel = self._find_picker_panel(self.component)
         self._input = element
 
-    button_ok: WebElement = AttributeDescriptor('.//button[contains(text(), "ok") or contains(text(), "OK")]')
+    button_ok: WebElement = AttributeDescriptor(
+        './/button[contains(text(), "ok") or contains(text(), "OK")]'
+    )
     active_picker: WebElement = AttributeDescriptor('.//td[contains(@class, "active")]')
 
     def _find_component(self, parent_element: WebElement) -> WebElement:
         try:
             xpath = format_xpath_from_parent(self.tag_name)
-            return parent_element.find_element_by_xpath(xpath)
+            return parent_element.find_element(By.XPATH, xpath)
         except NoSuchElementException:
-            raise DatePickerNotFound(f'<{self.tag_name}> tag not found in parent tag of this element')
+            raise DatePickerNotFound(
+                f"<{self.tag_name}> tag not found in parent tag of this element"
+            )
 
     def _find_picker_panel(self, component: WebElement) -> WebElement:
         try:
-            return component.find_element_by_class_name(self.body_class)
+            return component.find_element(By.CLASS_NAME, self.body_class)
         except NoSuchElementException:
-            raise DatePickerNotFound(f'Cannot find datepicker body by class {self.body_class}')
+            raise DatePickerNotFound(
+                f"Cannot find datepicker body by class {self.body_class}"
+            )
 
     @property
     def is_visible(self):
@@ -111,7 +127,12 @@ class DatePicker:
         self._input.clear()
         self._input.send_keys(value_to_set)
 
-    def set_time(self, from_time: datetime, to_time: Optional[datetime] = None, formatter: Optional[str] = None):
+    def set_time(
+        self,
+        from_time: datetime,
+        to_time: Optional[datetime] = None,
+        formatter: Optional[str] = None,
+    ):
         """
         Sets time(or time period if both argumets passed) in the datepicker input, but does not apply it.
         :param from_time:
@@ -124,7 +145,9 @@ class DatePicker:
         else:
             self._set_value(self._format_time, from_time, formatter)
 
-    def set_date(self, from_date: date, to_date: date = None, formatter: Optional[str] = None):
+    def set_date(
+        self, from_date: date, to_date: date = None, formatter: Optional[str] = None
+    ):
         """
         Sets date(or dates period if both argumets passed) in the datepicker input, but does not apply it.
         :param from_date:
@@ -137,10 +160,12 @@ class DatePicker:
         else:
             self._set_value(self._format_date, from_date, formatter)
 
-    def set_date_and_apply(self, from_date: date, to_date: date = None, formatter: Optional[str] = None):
+    def set_date_and_apply(
+        self, from_date: date, to_date: date = None, formatter: Optional[str] = None
+    ):
         """
-        Main method to use. Opens datepicker, sets given date period and presses ok button(or clicks on 
-        the date itself if no ok button present). 
+        Main method to use. Opens datepicker, sets given date period and presses ok button(or clicks on
+        the date itself if no ok button present).
         :param from_date:
         :param to_date: if None, from_date date will be set instead of period
         :param formatter: see python strftime doc
@@ -158,7 +183,12 @@ class DatePicker:
                 raise
             self.active_picker.click()
 
-    def set_time_and_apply(self, from_time: datetime, to_time: datetime = None, formatter: Optional[str] = None):
+    def set_time_and_apply(
+        self,
+        from_time: datetime,
+        to_time: datetime = None,
+        formatter: Optional[str] = None,
+    ):
         """
         Main method to use. Opens datepicker, sets given time period and presses ok button
         :param from_time:
@@ -169,11 +199,19 @@ class DatePicker:
         self.set_time(from_time, to_time, formatter)
         self.button_ok.click()
 
-    def _format_date_range(self, from_: date, to_: date, formatter: Optional[str]) -> str:
-        return ' - '.join([self._format_date(from_, formatter), self._format_date(to_, formatter)])
+    def _format_date_range(
+        self, from_: date, to_: date, formatter: Optional[str]
+    ) -> str:
+        return " - ".join(
+            [self._format_date(from_, formatter), self._format_date(to_, formatter)]
+        )
 
-    def _format_time_range(self, from_: datetime, to_: datetime, formatter: Optional[str]) -> str:
-        return ' - '.join([self._format_time(from_, formatter), self._format_time(to_, formatter)])
+    def _format_time_range(
+        self, from_: datetime, to_: datetime, formatter: Optional[str]
+    ) -> str:
+        return " - ".join(
+            [self._format_time(from_, formatter), self._format_time(to_, formatter)]
+        )
 
     def _format_date(self, date_to_format: date, formatter: Optional[str]):
         return date_to_format.strftime(formatter or self.default_date_format)

@@ -1,20 +1,26 @@
 from abc import ABCMeta
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 from urllib.parse import urljoin
+
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support import expected_conditions as EC
 
 from combo_e2e.config import config
 from combo_e2e.helpers.const import PAGE_READY_SCRIPT
 from combo_e2e.helpers.exceptions import BasePageException, PageNotOpened
 from combo_e2e.helpers.page_helper import check_js_condition_is_true
-from combo_e2e.helpers.utils import get_parents_classes_attrs, get_base_url, add_url_params, get_id_from_url, \
-    split_url_and_params
+from combo_e2e.helpers.utils import (
+    add_url_params,
+    get_base_url,
+    get_id_from_url,
+    get_parents_classes_attrs,
+    split_url_and_params,
+)
 from combo_e2e.pages.base_abstract import AbstractBasePage
 from combo_e2e.pages.base_navigation import BaseNavigation
-from combo_e2e.pages.uicomponents import Toast, ConfirmDialog
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support import expected_conditions as EC
+from combo_e2e.pages.uicomponents import ConfirmDialog, Toast
 
 
 class BasePageMeta(ABCMeta):
@@ -37,31 +43,41 @@ class BasePageMeta(ABCMeta):
         all_attrs = get_parents_classes_attrs(bases)
         all_attrs.update(attrs)
 
-        app_name = all_attrs.pop('app_name', None)
+        app_name = all_attrs.pop("app_name", None)
         if not app_name:
             raise BasePageException('Page object must have "app_name" attribute')
 
         app_config = config.BASE_APP_CONFIG.get(app_name)
-        base_url = app_config.get('base_url')
+        base_url = app_config.get("base_url")
         if not base_url:
-            raise BasePageException(f'Base url not found in config for project {app_name}. Fix it!!!')
-        new_attrs['_base_url'] = base_url
+            raise BasePageException(
+                f"Base url not found in config for project {app_name}. Fix it!!!"
+            )
+        new_attrs["_base_url"] = base_url
 
-        page_url = all_attrs.pop('page_url', None)
+        page_url = all_attrs.pop("page_url", None)
         if page_url is None:
             raise BasePageException(f'Page object must have "page_url" attribute')
-        new_attrs['page_url'] = urljoin(base_url, page_url)
+        new_attrs["page_url"] = urljoin(base_url, page_url)
 
-        valid_urls = all_attrs.pop('valid_urls', [])
+        valid_urls = all_attrs.pop("valid_urls", [])
         valid_urls.append(page_url)
-        new_attrs['valid_urls'] = [urljoin(base_url, url) for url in valid_urls]
+        new_attrs["valid_urls"] = [urljoin(base_url, url) for url in valid_urls]
 
-        new_attrs['has_page_ready_script'] = app_config.get('has_page_ready_script', False)
+        new_attrs["has_page_ready_script"] = app_config.get(
+            "has_page_ready_script", False
+        )
 
-        for attr_name in {'page_loader_css_class', 'table_loader_css_class', 'modal_visible_css_class'}:
+        for attr_name in {
+            "page_loader_css_class",
+            "table_loader_css_class",
+            "modal_visible_css_class",
+        }:
             value = all_attrs.pop(attr_name, None) or app_config.get(attr_name)
             if value is None:
-                raise BasePageException(f'{attr_name} attribute must be set in config for current app {app_name}')
+                raise BasePageException(
+                    f"{attr_name} attribute must be set in config for current app {app_name}"
+                )
             new_attrs[attr_name] = value
 
         new_attrs.update(all_attrs)
@@ -97,8 +113,13 @@ class BasePage(AbstractBasePage):
     """
     _base_url: str = None
 
-    def __init__(self, fresh_session: bool = False, open_page: bool = True, query_params: Optional[Dict] = None,
-                 **kwargs):
+    def __init__(
+        self,
+        fresh_session: bool = False,
+        open_page: bool = True,
+        query_params: Optional[Dict] = None,
+        **kwargs,
+    ):
         """
 
         :param fresh_session: whether it is necessary to clear the current browser session (delete cookies, etc.)
@@ -135,12 +156,16 @@ class BasePage(AbstractBasePage):
     def _search_in_valid_urls(self, pattern: str) -> str:
         base_url, params = split_url_and_params(pattern)
         for url in self.valid_urls:
-            if base_url.rstrip('/') in url:
-                return f'{url}?{params}' if params else url
-        raise PageNotOpened(f'You want to open url by pattern="{pattern}" '
-                            f'but url not found in valid_urls: {self.valid_urls}')
+            if base_url.rstrip("/") in url:
+                return f"{url}?{params}" if params else url
+        raise PageNotOpened(
+            f'You want to open url by pattern="{pattern}" '
+            f"but url not found in valid_urls: {self.valid_urls}"
+        )
 
-    def _make_valid_url(self, custom_url: Optional[str] = None, params: Optional[Dict] = None) -> str:
+    def _make_valid_url(
+        self, custom_url: Optional[str] = None, params: Optional[Dict] = None
+    ) -> str:
         """
         Returns the requested link if it is present in valid_urls
         :param custom_url:
@@ -157,28 +182,40 @@ class BasePage(AbstractBasePage):
     def check_opened(self):
         opened_url = get_base_url(self.opened_url)
         for url in self.valid_urls:
-            if url.rstrip('/') in opened_url:
+            if url.rstrip("/") in opened_url:
                 return
-        raise PageNotOpened(f'Get attr of {type(self).__name__}, but current url: {self.opened_url}')
+        raise PageNotOpened(
+            f"Get attr of {type(self).__name__}, but current url: {self.opened_url}"
+        )
 
     def wait_page_loaded(self) -> None:
         try:
             if self.has_page_ready_script:
                 self.wait.until(check_js_condition_is_true(PAGE_READY_SCRIPT))
         except TimeoutException:
-            raise BasePageException('Check that "e2eReady" attribute set by frontend on the current page.')
+            raise BasePageException(
+                'Check that "e2eReady" attribute set by frontend on the current page.'
+            )
 
     def wait_loader_not_visible(self) -> None:
         if self.page_loader_css_class:
-            self.wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, self.page_loader_css_class)))
+            self.wait.until(
+                EC.invisibility_of_element_located(
+                    (By.CLASS_NAME, self.page_loader_css_class)
+                )
+            )
 
     def wait_tableloader_not_visible(self) -> None:
         if self.table_loader_css_class:
-            self.wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, self.table_loader_css_class)))
+            self.wait.until(
+                EC.invisibility_of_element_located(
+                    (By.CLASS_NAME, self.table_loader_css_class)
+                )
+            )
 
     def wait_dialog_is_visible(self) -> None:
-        attr_name = 'role'
-        attr_value = 'dialog'
+        attr_name = "role"
+        attr_value = "dialog"
         search_pattern = (By.XPATH, f'//*[@{attr_name}="{attr_value}"]')
         self.wait.until(EC.visibility_of_element_located(search_pattern))
 

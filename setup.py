@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 setup(
     name="combo-e2e",
@@ -11,9 +11,10 @@ setup(
     author_email="roman@adcombo.com",
     license="MIT",
     classifiers=[
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "License :: OSI Approved :: MIT License",
     ],
     keywords="web e2e test testing end-to-end",
@@ -21,9 +22,9 @@ setup(
     zip_safe=False,
     platforms="any",
     install_requires=[
-        'selenium==3.11.0',
-        'requests==2.23.0',
-        'lxml>=3.6.0',
+        "selenium==4.7.2",
+        "requests==2.26.0",
+        "lxml==4.9.2",
     ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],

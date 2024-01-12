@@ -7,27 +7,32 @@ import re
 import time
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import List, Dict, Union, Optional, Set
+from typing import Dict, List, Optional, Set, Union
+
+from selenium.common.exceptions import (
+    ElementNotVisibleException,
+    NoSuchCookieException,
+    NoSuchElementException,
+)
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
 from combo_e2e.config import config
 from combo_e2e.driver import E2EDriver
 from combo_e2e.helpers import const
 from combo_e2e.helpers.exceptions import BasePageException
 from combo_e2e.helpers.utils import get_param_from_url
-from combo_e2e.pages import WebElementProxy, ElementDescriptor
+from combo_e2e.pages import ElementDescriptor, WebElementProxy
 from combo_e2e.pages.uicomponents import Table
-from selenium.common.exceptions import ElementNotVisibleException, NoSuchElementException, NoSuchCookieException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
 
 
 class ScrollPositions(Enum):
-    start = 'start'
-    center = 'center'
-    end = 'end'
-    nearest = 'nearest'
+    start = "start"
+    center = "center"
+    end = "end"
+    nearest = "nearest"
 
 
 class AbstractBasePage(metaclass=ABCMeta):
@@ -104,8 +109,8 @@ class AbstractBasePage(metaclass=ABCMeta):
         """
         checks number of open tabs, moves driver focus on the last opened,
         closes the rest.
-        Not to be used unnecessarily, 
-        Не использовать напрямую без надобности, since this method is automatically called 
+        Not to be used unnecessarily,
+        Не использовать напрямую без надобности, since this method is automatically called
         in element.click() и element.click_and_wait()
         :return:
         """
@@ -136,7 +141,9 @@ class AbstractBasePage(metaclass=ABCMeta):
         """
         return self.__wait
 
-    def custom_wait(self, timeout: int = None, frequency: float = None) -> WebDriverWait:
+    def custom_wait(
+        self, timeout: int = None, frequency: float = None
+    ) -> WebDriverWait:
         """
         Custom wait (polling rate and maximum waiting time can be adjusted)
         :param timeout:
@@ -144,12 +151,12 @@ class AbstractBasePage(metaclass=ABCMeta):
         :return:
         """
         kwargs = {
-            'timeout': config.WEB_DRIVER_WAIT,
+            "timeout": config.WEB_DRIVER_WAIT,
         }
         if timeout:
-            kwargs['timeout'] = timeout
+            kwargs["timeout"] = timeout
         if frequency:
-            kwargs['poll_frequency'] = frequency
+            kwargs["poll_frequency"] = frequency
 
         return WebDriverWait(self._driver, **kwargs)
 
@@ -165,8 +172,9 @@ class AbstractBasePage(metaclass=ABCMeta):
             raise BasePageException(f'Elements not found by {by} value: "{value}"')
         return elements
 
-    def reload_element(self, el: Union[WebElementProxy, List[WebElementProxy]]) -> Union[WebElementProxy,
-                                                                                         List[WebElementProxy]]:
+    def reload_element(
+        self, el: Union[WebElementProxy, List[WebElementProxy]]
+    ) -> Union[WebElementProxy, List[WebElementProxy]]:
         """
         Reload element if it has disappeared from the session
         :el: the element to be reloaded
@@ -177,12 +185,14 @@ class AbstractBasePage(metaclass=ABCMeta):
             el = el[0]
             many = True
         if not isinstance(el, WebElementProxy):
-            raise BasePageException('Element must be instance of WebElementProxy')
+            raise BasePageException("Element must be instance of WebElementProxy")
 
         if el.attr_name:
             self._cached_attrs.pop(el.attr_name, None)
 
-        return self.find_elements(*el.locator) if many else self.find_element(*el.locator)
+        return (
+            self.find_elements(*el.locator) if many else self.find_element(*el.locator)
+        )
 
     def find_element(self, by=By.ID, value=None) -> WebElementProxy:
         """
@@ -223,8 +233,12 @@ class AbstractBasePage(metaclass=ABCMeta):
             value=value,
         )
 
-    def scroll_to_element(self, element: WebElementProxy, vertical_position: ScrollPositions = ScrollPositions.center,
-                          horizontal_position: ScrollPositions = ScrollPositions.nearest):
+    def scroll_to_element(
+        self,
+        element: WebElementProxy,
+        vertical_position: ScrollPositions = ScrollPositions.center,
+        horizontal_position: ScrollPositions = ScrollPositions.nearest,
+    ):
         """
         Scrolls the page to the passed element
         :param element: The element to scroll to
@@ -232,13 +246,18 @@ class AbstractBasePage(metaclass=ABCMeta):
         :param horizontal_position: Horizontal scroll position
         :return:
         """
-        script = const.SCROLL_TEMPLATE_SCRIPT.format(block=vertical_position.value, inline=horizontal_position.value)
+        script = const.SCROLL_TEMPLATE_SCRIPT.format(
+            block=vertical_position.value, inline=horizontal_position.value
+        )
         self.driver.execute_script(script, element)
 
     @classmethod
-    def wait_visibility_one_of_elements(cls, elements: List[Union[WebElementProxy, WebElement]],
-                                        timeout: Optional[int] = None,
-                                        ticks: Optional[float] = 0.5) -> Union[WebElementProxy, WebElement]:
+    def wait_visibility_one_of_elements(
+        cls,
+        elements: List[Union[WebElementProxy, WebElement]],
+        timeout: Optional[int] = None,
+        ticks: Optional[float] = 0.5,
+    ) -> Union[WebElementProxy, WebElement]:
         """
         Waits for one of the passed elements to become visible to the user (located in the DOM)
         :param elements: List of elements to wait
@@ -247,7 +266,9 @@ class AbstractBasePage(metaclass=ABCMeta):
         :return:
         """
         if not elements:
-            raise NoSuchElementException('Nothing to wait. At least one element must be passed')
+            raise NoSuchElementException(
+                "Nothing to wait. At least one element must be passed"
+            )
         timeout = timeout or config.WEB_DRIVER_WAIT
         run_time = timeout
 
@@ -257,9 +278,13 @@ class AbstractBasePage(metaclass=ABCMeta):
                     return el
             time.sleep(ticks)
             run_time -= ticks
-        raise ElementNotVisibleException('Could not wait for the visibility of any of transmitted elements')
+        raise ElementNotVisibleException(
+            "Could not wait for the visibility of any of transmitted elements"
+        )
 
-    def delete_cookies(self, filter_value: Optional[str] = None, cookie_key: str = 'name') -> None:
+    def delete_cookies(
+        self, filter_value: Optional[str] = None, cookie_key: str = "name"
+    ) -> None:
         """
         Clear cookies in current browser session
         :param filter_value: clear all browser cookies for current domain if it not passed. Value support regex
@@ -274,9 +299,11 @@ class AbstractBasePage(metaclass=ABCMeta):
                 try:
                     cookie_value = item[cookie_key]
                 except KeyError:
-                    raise NoSuchCookieException(f'Not found cookie by (value, key) = ({filter_value}, {cookie_key})')
+                    raise NoSuchCookieException(
+                        f"Not found cookie by (value, key) = ({filter_value}, {cookie_key})"
+                    )
                 if re.search(filter_value, cookie_value, flags=re.IGNORECASE):
-                    self.driver.delete_cookie(name=item['name'])
+                    self.driver.delete_cookie(name=item["name"])
 
     def delete_local_storage(self, key: Optional[str] = None) -> None:
         """
@@ -285,12 +312,18 @@ class AbstractBasePage(metaclass=ABCMeta):
         :return:
         """
         if key:
-            self.driver.execute_script("window.localStorage.removeItem(arguments[0]);", key)
+            self.driver.execute_script(
+                "window.localStorage.removeItem(arguments[0]);", key
+            )
         else:
             self.driver.execute_script("window.localStorage.clear();")
 
-    def wait_accessibility_of(self, element_descriptor: Union[ElementDescriptor, WebElementProxy, Table],
-                              timeout: int = None, frequency: float = 0.2) -> None:
+    def wait_accessibility_of(
+        self,
+        element_descriptor: Union[ElementDescriptor, WebElementProxy, Table],
+        timeout: int = None,
+        frequency: float = 0.2,
+    ) -> None:
         """
         Waits for element to appear on the page
         :param element_descriptor: elements descriptor
@@ -299,9 +332,11 @@ class AbstractBasePage(metaclass=ABCMeta):
         :return:
         """
         if not isinstance(element_descriptor, (ElementDescriptor, Table)):
-            raise BasePageException('It wait only Element Descriptor instance objects')
+            raise BasePageException("It wait only Element Descriptor instance objects")
         search_pattern = (element_descriptor.search_by, element_descriptor.value)
-        self.custom_wait(timeout, frequency).until(EC.visibility_of_element_located(search_pattern))
+        self.custom_wait(timeout, frequency).until(
+            EC.visibility_of_element_located(search_pattern)
+        )
 
     def extract_param_from_opened_url(self, name: str) -> Optional[str]:
         """
@@ -314,8 +349,12 @@ class AbstractBasePage(metaclass=ABCMeta):
         if res:
             return res[0]
 
-    def wait_element_clickable(self, element_descriptor: Union[ElementDescriptor, WebElementProxy, Table],
-                               timeout: int = None, frequency: float = 0.2) -> None:
+    def wait_element_clickable(
+        self,
+        element_descriptor: Union[ElementDescriptor, WebElementProxy, Table],
+        timeout: int = None,
+        frequency: float = 0.2,
+    ) -> None:
         """
         Waits for element to checking an element is visible and enabled such that you can click it
         :param element_descriptor: elements descriptor
@@ -324,6 +363,10 @@ class AbstractBasePage(metaclass=ABCMeta):
         :return:
         """
         if not isinstance(element_descriptor, (ElementDescriptor, Table)):
-            raise BasePageException('It wait only Element Descriptor instance objects hz what is that')
+            raise BasePageException(
+                "It wait only Element Descriptor instance objects hz what is that"
+            )
         search_pattern = (element_descriptor.search_by, element_descriptor.value)
-        self.custom_wait(timeout, frequency).until(EC.element_to_be_clickable(search_pattern))
+        self.custom_wait(timeout, frequency).until(
+            EC.element_to_be_clickable(search_pattern)
+        )

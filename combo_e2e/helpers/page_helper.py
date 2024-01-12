@@ -1,5 +1,6 @@
 class check_js_condition_is_true(object):
     """Checking js condition"""
+
     def __init__(self, js_code: str):
         self.code = js_code
 

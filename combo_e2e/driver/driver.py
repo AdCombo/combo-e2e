@@ -70,6 +70,9 @@ class E2EDriver:
             options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--disable-gpu")
         if config.CHROME_OPTIONS:
+            options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            options.add_experimental_option("useAutomationExtension", False)
+            options.add_argument("--disable-blink-features=AutomationControlled")
             parts = filter(lambda o: o.strip(), config.CHROME_OPTIONS.split(";"))
             for opt in parts:
                 options.add_argument(opt)

@@ -20,6 +20,7 @@ class FileWaiter:
         ignored_extentions: List[str],
         increase_to: int,
         timeout: int,
+        extension: str = None,
     ):
         self._start_time: float = datetime.datetime.now().timestamp()
         self.directory_to_watch = directory_to_watch
@@ -27,6 +28,7 @@ class FileWaiter:
         self.increase_to = increase_to
         self.timeout = timeout
         self._new_files = []
+        self.extension = extension
 
     @property
     def new_files(self) -> List[Path]:
@@ -51,6 +53,7 @@ class FileWaiter:
                 path.is_file()
                 and path.stat().st_ctime > self._start_time
                 and path.suffix not in self.ignored_extentions
+                and (self.extension == None or path.suffix == self.extension)
             ):
                 new_paths.append(path)
         return new_paths
@@ -63,12 +66,13 @@ def wait_new_files(
     ignored_extentions: List[str] = None,
     increase_to: int = 1,
     timeout: int = 10,
+    extension: str = None,
 ) -> ContextManager[FileWaiter]:
     if path is None:
         path = page.downloads_dir
     if ignored_extentions is None:
         ignored_extentions = (".crdownload",)
-    waiter = FileWaiter(path, ignored_extentions, increase_to, timeout)
+    waiter = FileWaiter(path, ignored_extentions, increase_to, timeout, extension)
     yield waiter
     waiter.wait()
     # closing all tabs that might have been opened while downloading files

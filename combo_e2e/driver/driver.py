@@ -73,6 +73,9 @@ class E2EDriver:
             options.add_experimental_option("excludeSwitches", ["enable-automation"])
             options.add_experimental_option("useAutomationExtension", False)
             options.add_argument("--disable-blink-features=AutomationControlled")
+            options.add_argument('--ignore-certificate-errors')
+            options.add_argument('--allow-running-insecure-content')
+            options.add_argument('--disable-features=InsecureDownloadWarnings')
             parts = filter(lambda o: o.strip(), config.CHROME_OPTIONS.split(";"))
             for opt in parts:
                 options.add_argument(opt)

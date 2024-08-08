@@ -93,7 +93,12 @@ class Column:
 
     @classmethod
     def _compile_xpath_by_visible_name(cls, name: str):
-        return f'//{cls.head_tag_name}[contains(text(),"{name}")]'
+        if '/' in name:
+            parts = name.split('/')
+            xpath_conditions = ' and '.join([f'.//span[text()="{part}"]' for part in parts])
+            return f'//{cls.head_tag_name}[{xpath_conditions}]'
+        else:
+            return f'//{cls.head_tag_name}[contains(text(),"{name}")]'
 
     def _compile_xpath_by_attribute_name(self, name: str, value: str):
         if not (value and name):

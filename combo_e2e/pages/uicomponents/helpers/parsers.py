@@ -59,7 +59,7 @@ def parse_table_thead(head: str, tag_text_key: str, attributes: Set[str]):
                 # group title, not column name
                 continue
             if item.tag == HEAD_COLUMN_TAG:
-                formatted_key = format_tag_text(item.text)
+                formatted_key = format_tag_text(''.join(item.itertext()))
                 if tag_text_key in res and formatted_key in res[tag_text_key]:
                     raise ValueError(
                         f"Duplicate value={formatted_key} of th.text in header of table"

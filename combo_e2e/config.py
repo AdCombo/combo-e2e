@@ -28,7 +28,7 @@ class Config(BaseConfig):
     BASE_APP_CONFIG = {}
 
     # selenium config
-    WEB_DRIVER_WAIT = 20
+    WEB_DRIVER_WAIT = 60
     WEB_DRIVER_LOG_LEVEL = "warning"
     # path to save screenshots to in case of errors
     SCREENSHOT_PATH = "/tmp/selenium_screenshots"

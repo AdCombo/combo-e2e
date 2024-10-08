@@ -279,7 +279,7 @@ class ElementDescriptor:
 class ListOfElementDescriptor:
     """
     A descriptor class similar to ElementDescriptor, but to describe a group of elements,
-    which differ in indices.
+    which differ in indices or suffixes.
     <button name="row_1"></button>
     <button name="row_2"></button>
     This class is needed in order not to multiply the description of such elements in the base page.
@@ -291,8 +291,14 @@ class ListOfElementDescriptor:
     Also allows to describe elements like this:
     <button name="row_1_foo"></button>
     <button name="row_2_foo"></button>
-    You can use end_name_part parametr:
+    You can use end_name_part parameter:
     elements = ListOfElementDescriptor(base_name_parts=['row_'], end_name_part='_foo')
+    Additionally, elements can be accessed by a suffix string:
+    elements.get_by_suffix('foo') will return the element with name "row_foo"
+    Elements can also be accessed using bracket notation like this:
+    elements['foo'] will return the element with name "row_foo"
+    Multiple elements can be accessed using a list of suffixes:
+    elements[['foo', 'bar']] will return a list of elements with names "row_foo" and "row_bar"
     """
 
     base_name_parts: list = None
@@ -343,6 +349,33 @@ class ListOfElementDescriptor:
         if not all([isinstance(num, int) for num in numbers]):
             raise BasePageException("all of parameters must be int")
         return self.get(*numbers)
+
+    def get_by_suffix(self, suffix: str) -> WebElementProxy:
+        """
+        Get an element by its suffix part on the rendered page.
+        :param suffix: The suffix to identify the element
+        :return:
+        """
+        if not isinstance(suffix, str):
+            raise BasePageException("suffix must be a string")
+        attr_name = self._make_attr_name_with_suffix(suffix)
+        descriptor = self._get_attribute_descriptor(attr_name)
+        return descriptor.__get__(self.page)
+
+    def get_multiple_by_suffixes(self, suffixes: List[str]) -> List[WebElementProxy]:
+        """
+        Get multiple elements by their suffix parts on the rendered page.
+        :param suffixes: List of suffixes to identify the elements
+        :return: List of WebElementProxy objects
+        """
+        if not all([isinstance(suffix, str) for suffix in suffixes]):
+            raise BasePageException("all suffixes must be strings")
+        elements = []
+        for suffix in suffixes:
+            attr_name = self._make_attr_name_with_suffix(suffix)
+            descriptor = self._get_attribute_descriptor(attr_name)
+            elements.append(descriptor.__get__(self.page))
+        return elements
 
     def get_no_load(self, *numbers) -> ElementDescriptor:
         """
@@ -403,15 +436,31 @@ class ListOfElementDescriptor:
 
         return "_".join(indexed_names)
 
+    def _make_attr_name_with_suffix(self, suffix: str) -> str:
+        """
+        Create the attribute name by appending the suffix to the base name parts.
+        :param suffix: The suffix to append
+        :return: The full attribute name
+        """
+        base_name = "_".join(self.base_name_parts)
+        if self.end_name_part:
+            base_name = f"{base_name}_{self.end_name_part}"
+        return f"{base_name}_{suffix}"
+
     def __get__(self, page, objtype=None):
         self.page = page
         return self
 
-    def __getitem__(self, item: int):
-        if not isinstance(item, int):
+    def __getitem__(self, item):
+        if isinstance(item, int):
+            if getattr(self.page, "nested_table", None) is True:
+                return self.get_relative(item)
+            return self.get(item)
+        elif isinstance(item, str):
+            return self.get_by_suffix(item)
+        elif isinstance(item, list):
+            return self.get_multiple_by_suffixes(item)
+        else:
             raise BasePageException(
-                "ListOfElementDescriptor support only number access to attributes"
+                "ListOfElementDescriptor supports only number, string, or list access to attributes"
             )
-        if getattr(self.page, "nested_table", None) is True:
-            return self.get_relative(item)
-        return self.get(item)

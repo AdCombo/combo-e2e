@@ -38,6 +38,12 @@ class Config(BaseConfig):
     # chrome driver downloader config (https://chromedriver.chromium.org/)
     CHROME_DRIVER_URL = "https://chromedriver.storage.googleapis.com/"
     CHROME_DRIVER_VER = "LATEST_RELEASE"
+    NEW_CHROME_DRIVER_VER = 115
+
+    CHROME_DRIVER_LAST_KNOWN_URL = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json"
+    CHROME_DRIVER_PLATFORM = 'linux64'
+    NEW_CHROME_DRIVER_URL = "https://storage.googleapis.com/chrome-for-testing-public/{version}/{platform}/"
+    NEW_CHROME_DRIVER_FILE_NAME = "chromedriver-{platform}.zip"
     # Major versions of chrome and chrome driver must match
     # If you encounter an error: This version of ChromeDriver only supports Chrome version XXX
     # then you need to get correct version from https://chromedriver.chromium.org/downloads and enter below
@@ -47,7 +53,7 @@ class Config(BaseConfig):
     # if empty string, then the default path in tmp is used
     CHROME_DRIVER_PATH = ""
     # re download driver every time tests are run
-    RELOAD_DRIVER = False
+    RELOAD_DRIVER = True
     # kill driver after tests (in case of False browser won't close)
     KILL_DRIVER = True
     # changes selenium default load timeout

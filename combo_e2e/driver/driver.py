@@ -5,11 +5,9 @@ from typing import Optional
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote import remote_connection
 from selenium.webdriver.remote.command import Command
-from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.remote.remote_connection import LOGGER
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.remote_connection import LOGGER
 from selenium.webdriver.remote.webdriver import WebDriver
 
